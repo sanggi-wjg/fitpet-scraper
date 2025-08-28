@@ -1,0 +1,67 @@
+import logging
+from functools import wraps
+from typing import TypeVar, Any, Callable, Self
+
+T = TypeVar("T")
+
+
+class Result:
+
+    def __init__(self, value: Any = None, exception: Exception | None = None):
+        self.value = value
+        self.exception = exception
+        self.is_success = exception is None
+
+    @property
+    def is_failure(self) -> bool:
+        return not self.is_success
+
+    def get_or_null(self) -> Any:
+        return self.value if self.is_success else None
+
+    def get_or_throw(self) -> Any:
+        if self.is_success:
+            return self.value
+        raise self.exception
+
+    def exception_or_null(self) -> Exception | None:
+        return self.exception if self.is_failure else None
+
+    def on_success(self, action: Callable[[Any], None]) -> Self:
+        if self.is_success:
+            action(self.value)
+        return self
+
+    def on_failure(self, action: Callable[[Exception], None]) -> Self:
+        if self.is_failure:
+            action(self.exception)
+        return self
+
+    def fold(
+        self,
+        on_success: Callable[[Any], Any],
+        on_failure: Callable[[Exception], Any],
+    ) -> Any:
+        if self.is_success:
+            return on_success(self.value)
+        else:
+            return on_failure(self.exception)
+
+    def __str__(self) -> str:
+        if self.is_success:
+            return f"Success({self.value})"
+        else:
+            return f"Failure({self.exception})"
+
+
+def run_catching(func: Callable[..., T]) -> Callable[..., Result]:
+
+    @wraps(func)
+    def wrapper(*args, **kwargs) -> Result:
+        try:
+            result = func(*args, **kwargs)
+            return Result(value=result)
+        except Exception as e:
+            return Result(exception=e)
+
+    return wrapper
