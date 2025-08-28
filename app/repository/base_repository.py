@@ -42,6 +42,11 @@ class BaseRepository(Generic[T], ABC):
         self.session.add_all(entities)
         return entities
 
+    def bulk_save(self, entities: List[T]):
+        if not entities:
+            return
+        self.session.bulk_save_objects(entities)
+
     def delete(self, entity: T) -> None:
         self.session.delete(entity)
 

@@ -26,9 +26,9 @@ app.conf.ONCE = {
 }
 
 app.conf.beat_schedule = {
-    "scrape_products_task": {
-        "task": "app.task.tasks.scrape_products_task",
-        "schedule": crontab(minute="*/5"),
+    "scrape_naver_shopping_task": {
+        "task": "app.task.tasks.scrape_naver_shopping_task",
+        "schedule": crontab(minute="10", hour="1"),  # 매일 1시 10분에 실행
         "args": (),
     },
 }

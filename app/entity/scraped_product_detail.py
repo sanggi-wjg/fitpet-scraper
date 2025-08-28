@@ -12,7 +12,6 @@ class ScrapedProductDetail(Base):
     image_link = Column(String(1024))
     price = Column(Numeric(10, 0), nullable=False)
     mall_name = Column(String(128))
-    product_id = Column(String(1024))
     product_type = Column(String(128))
     brand = Column(String(128))
     maker = Column(String(128))
