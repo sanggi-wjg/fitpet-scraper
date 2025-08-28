@@ -24,6 +24,12 @@ class ScrapedProduct(Base):
     def __repr__(self):
         return f"<Product(name='{self.name}', platform='{self.channel}')>"
 
+    def update_need_tracking(self):
+        self.is_tracking_required = True
+
+    def update_not_need_tracking(self):
+        self.is_tracking_required = False
+
     def add_detail_from_naver_shopping(
         self,
         link: str,

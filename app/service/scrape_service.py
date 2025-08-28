@@ -30,9 +30,12 @@ class ScrapeService:
                         name=item.title,
                         channel=ChannelEnum.NAVER_SHOPPING,
                         keyword_id=keyword_id,
-                        is_tracking_required=is_tracking_required,
+                        is_tracking_required=False,
                     )
                 )
+
+            if is_tracking_required and item.is_mall_name_naver:
+                scraped_product.update_need_tracking()
 
             scraped_product.add_detail_from_naver_shopping(
                 link=item.link,
@@ -43,5 +46,5 @@ class ScrapeService:
                 product_type=item.product_type,
                 brand=item.brand,
                 maker=item.maker,
-                scraped_result=item.scraped_result,
+                scraped_result=item.model_dump_json(),
             )
