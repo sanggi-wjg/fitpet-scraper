@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String, DateTime, Enum, func, ForeignKey
+from decimal import Decimal
+
+from sqlalchemy import Column, Integer, String, DateTime, Enum, func, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
 from app.config.database import Base
@@ -12,6 +14,7 @@ class ScrapedProduct(Base):
     name = Column(String(1024), nullable=False, index=True)
     channel = Column(Enum(ChannelEnum), nullable=False, index=True)
     created_at = Column(DateTime, default=func.now(), nullable=False)
+    is_tracking_required = Column(Boolean, nullable=False, default=False)
 
     # relationships
     keyword_id = Column(Integer, ForeignKey("keyword.id", ondelete="RESTRICT"), nullable=True, index=True)
@@ -21,8 +24,30 @@ class ScrapedProduct(Base):
     def __repr__(self):
         return f"<Product(name='{self.name}', platform='{self.channel}')>"
 
-    # def add_price(self, price: Decimal, discount: Optional[int]) -> "ScrapedProductDetail":
-    #     from app.entity.scraped_product_detail import ScrapedProductDetail
-    #     detail = ProductPrice(price=price, discount=discount)
-    #     self.prices.append(new_price)
-    #     return new_price
+    def add_detail_from_naver_shopping(
+        self,
+        link: str,
+        image_link: str,
+        price: Decimal,
+        mall_name: str,
+        product_id: str,
+        product_type: str,
+        brand: str,
+        maker: str,
+        scraped_result: str,
+    ) -> "ScrapedProductDetail":
+        from app.entity import ScrapedProductDetail
+
+        detail = ScrapedProductDetail(
+            link=link,
+            image_link=image_link,
+            price=price,
+            mall_name=mall_name,
+            product_id=product_id,
+            product_type=product_type,
+            brand=brand,
+            maker=maker,
+            scraped_result=scraped_result,
+        )
+        self.details.append(detail)
+        return detail

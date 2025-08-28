@@ -6,28 +6,28 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=("../../.env",),
+        env_file=".env",
         env_file_encoding="UTF-8",
         env_nested_delimiter="__",
-        nested_model_default_partial_update=True,
+        nested_model_default_partial_update=False,
     )
 
-    class SqliteDatabase(BaseModel):
-        path: str = "sqlite:///master.db"
-
-    class NaverShopping(BaseModel):
+    class NaverShoppingValue(BaseModel):
         client_id: str
         client_secret: str
 
-    class Celery(BaseModel):
-        broker = "redis://localhost:6379/0"
-        backend = "sqlite:///master.db"
-        once_backend = "redis://localhost:6379/1"
-        once_default_timeout = 60 * 60  # 1시간
+    class SqliteDatabaseValue(BaseModel):
+        path: str
 
-    sqlite_database: SqliteDatabase
-    naver_shopping: NaverShopping
-    celery: Celery
+    class CeleryValue(BaseModel):
+        broker: str
+        backend: str
+        once_backend: str
+        once_default_timeout: int
+
+    naver_shopping: NaverShoppingValue
+    sqlite_database: SqliteDatabaseValue
+    celery: CeleryValue
 
 
 @lru_cache

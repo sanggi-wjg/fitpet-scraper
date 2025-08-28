@@ -1,11 +1,10 @@
-import logging
 from functools import wraps
-from typing import TypeVar, Any, Callable, Self
+from typing import TypeVar, Any, Callable, Self, Generic
 
 T = TypeVar("T")
 
 
-class Result:
+class Result(Generic[T]):
 
     def __init__(self, value: Any = None, exception: Exception | None = None):
         self.value = value
@@ -16,18 +15,18 @@ class Result:
     def is_failure(self) -> bool:
         return not self.is_success
 
-    def get_or_null(self) -> Any:
+    def get_or_none(self) -> T:
         return self.value if self.is_success else None
 
-    def get_or_throw(self) -> Any:
+    def get_or_raise(self) -> T:
         if self.is_success:
             return self.value
         raise self.exception
 
-    def exception_or_null(self) -> Exception | None:
+    def exception_or_none(self) -> Exception | None:
         return self.exception if self.is_failure else None
 
-    def on_success(self, action: Callable[[Any], None]) -> Self:
+    def on_success(self, action: Callable[[T], None]) -> Self:
         if self.is_success:
             action(self.value)
         return self
@@ -37,11 +36,7 @@ class Result:
             action(self.exception)
         return self
 
-    def fold(
-        self,
-        on_success: Callable[[Any], Any],
-        on_failure: Callable[[Exception], Any],
-    ) -> Any:
+    def fold(self, on_success: Callable[[T], Any], on_failure: Callable[[Exception], Any]) -> Any:
         if self.is_success:
             return on_success(self.value)
         else:
@@ -54,13 +49,12 @@ class Result:
             return f"Failure({self.exception})"
 
 
-def run_catching(func: Callable[..., T]) -> Callable[..., Result]:
+def run_catching(func: Callable[..., T]) -> Callable[..., Result[T]]:
 
     @wraps(func)
-    def wrapper(*args, **kwargs) -> Result:
+    def wrapper(*args, **kwargs) -> Result[T]:
         try:
-            result = func(*args, **kwargs)
-            return Result(value=result)
+            return Result(value=func(*args, **kwargs))
         except Exception as e:
             return Result(exception=e)
 

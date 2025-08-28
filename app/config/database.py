@@ -27,6 +27,8 @@ Base = declarative_base()
 
 
 def create_tables():
+    from app.entity import Keyword, ScrapedProduct, ScrapedProductDetail  # noqa: F401
+
     Base.metadata.create_all(bind=engine)
 
 
