@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Enum, func, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Enum, func, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
 from app.config.database import Base
@@ -11,7 +11,9 @@ class ScrapedProduct(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(1024), nullable=False, index=True)
     channel = Column(Enum(ChannelEnum), nullable=False, index=True)
-    created_at = Column(DateTime, default=func.now(), nullable=False)
+    channel_product_id = Column(String(1024), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), default=func.now(), nullable=False)
+    is_tracking_required = Column(Boolean, nullable=False, default=False)
 
     # relationships
     keyword_id = Column(Integer, ForeignKey("keyword.id", ondelete="RESTRICT"), nullable=True, index=True)
@@ -19,10 +21,10 @@ class ScrapedProduct(Base):
     details = relationship("ScrapedProductDetail", back_populates="scraped_product")
 
     def __repr__(self):
-        return f"<Product(name='{self.name}', platform='{self.channel}')>"
+        return f"<Product(name='{self.name}', channel='{self.channel}', channel_product_id='{self.channel_product_id}')>"
 
-    # def add_price(self, price: Decimal, discount: Optional[int]) -> "ScrapedProductDetail":
-    #     from app.entity.scraped_product_detail import ScrapedProductDetail
-    #     detail = ProductPrice(price=price, discount=discount)
-    #     self.prices.append(new_price)
-    #     return new_price
+    def update_tracking_require(self):
+        self.is_tracking_required = True
+
+    def update_tracking_disable(self):
+        self.is_tracking_required = False

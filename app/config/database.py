@@ -8,6 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 
 from app.config.settings import get_settings
+from app.exception.exceptions import FitpetScraperException
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -16,6 +17,7 @@ _local = threading.local()
 
 engine = create_engine(
     settings.sqlite_database.path,
+    echo=True,
     connect_args={"check_same_thread": True},
 )
 SessionLocal = sessionmaker(
@@ -27,6 +29,8 @@ Base = declarative_base()
 
 
 def create_tables():
+    from app.entity import Keyword, ScrapedProduct, ScrapedProductDetail  # noqa: F401
+
     Base.metadata.create_all(bind=engine)
 
 
@@ -80,8 +84,13 @@ def transactional():
                 session.commit()
                 return result
 
+            except (FitpetScraperException,) as e:
+                logger.info(f"rollback transaction for [{func.__name__}] method: {e}")
+                session.rollback()
+                raise
+
             except Exception as e:
-                logger.error(f"Unexpected error during transaction for {func.__name__}: {e}")
+                logger.error(f"Unexpected error occurred, rollback transaction for [{func.__name__}] method: {e}")
                 session.rollback()
                 raise
 
