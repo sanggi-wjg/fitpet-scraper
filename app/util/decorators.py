@@ -1,7 +1,9 @@
+import logging
 from collections.abc import Callable
 from functools import wraps
 from typing import TypeVar, Any, Self, Generic
 
+logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
@@ -51,12 +53,12 @@ class Result(Generic[T]):
 
 
 def run_catching(func: Callable[..., T]) -> Callable[..., Result[T]]:
-
     @wraps(func)
     def wrapper(*args, **kwargs) -> Result[T]:
         try:
             return Result(value=func(*args, **kwargs))
         except Exception as e:
+            logger.warning(f"Run-Catching, {func.__name__} failed with exception: {e}")
             return Result(exception=e)
 
     return wrapper

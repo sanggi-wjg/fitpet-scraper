@@ -6,7 +6,7 @@ from app.entity import ScrapedProduct, ScrapedProductDetail
 from app.enum.channel_enum import ChannelEnum
 from app.repository.scraped_product_detail_repository import ScrapedProductDetailRepository
 from app.repository.scraped_product_repository import ScrapedProductRepository
-from app.service.model.service_models import ScrapedProductModel
+from app.service.model.service_models import ScrapedProductModel, ScrapedProductWithRelatedModel
 
 
 class ScrapedProductService:
@@ -19,6 +19,13 @@ class ScrapedProductService:
         return [
             ScrapedProductModel.model_validate(item)
             for item in self.scraped_product_repository.find_all_by_channel_and_tracking_required(channel)
+        ]
+
+    @transactional()
+    def get_all_products_with_related(self) -> list[ScrapedProductWithRelatedModel]:
+        return [
+            ScrapedProductWithRelatedModel.model_validate(item)
+            for item in self.scraped_product_repository.find_all_with_related()
         ]
 
     @transactional()

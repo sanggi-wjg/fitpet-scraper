@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Numeric, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Numeric, Text, ForeignKey, func, DateTime
 from sqlalchemy.orm import relationship
 
 from app.config.database import Base
@@ -16,6 +16,7 @@ class ScrapedProductDetail(Base):
     brand = Column(String(128))
     maker = Column(String(128))
     scraped_result = Column(Text)
+    created_at = Column(DateTime, default=func.now(), nullable=False)
 
     # relationships
     scraped_product_id = Column(

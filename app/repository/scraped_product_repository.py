@@ -2,7 +2,7 @@ from typing import List
 
 from sqlalchemy.orm import joinedload
 
-from app.entity import ScrapedProduct
+from app.entity import ScrapedProduct, Keyword, ScrapedProductDetail
 from app.enum.channel_enum import ChannelEnum
 from app.repository.base_repository import BaseRepository
 
@@ -32,11 +32,33 @@ class ScrapedProductRepository(BaseRepository[ScrapedProduct]):
     def find_all_by_channel_and_tracking_required(self, channel: ChannelEnum) -> List[ScrapedProduct]:
         return (
             self.session.query(self.entity)
-            .options(joinedload(self.entity.keyword))
+            .options(
+                joinedload(self.entity.keyword),
+            )
             .filter(
                 self.entity.channel == channel,
                 self.entity.is_tracking_required,
             )
             .order_by(self.entity.id.asc())
+            .all()
+        )
+
+    def find_all_with_related(self) -> list[ScrapedProduct]:
+        return (
+            self.session.query(self.entity)
+            .options(
+                joinedload(self.entity.keyword),
+                joinedload(self.entity.details),
+            )
+            .join(Keyword)
+            .join(ScrapedProductDetail)
+            .filter(
+                Keyword.is_deleted.is_(False),
+            )
+            .order_by(
+                Keyword.id.asc(),
+                self.entity.id.asc(),
+                ScrapedProductDetail.id.asc(),
+            )
             .all()
         )

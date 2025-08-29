@@ -8,4 +8,10 @@ class KeywordRepository(BaseRepository[Keyword]):
         return self.session.query(self.entity).filter(self.entity.word == word).first()
 
     def find_all_available(self) -> list[Keyword]:
-        return self.session.query(self.entity).filter(self.entity.is_deleted.is_(False)).all()
+        return (
+            self.session.query(self.entity)
+            .filter(
+                self.entity.is_deleted.is_(False),
+            )
+            .all()
+        )
