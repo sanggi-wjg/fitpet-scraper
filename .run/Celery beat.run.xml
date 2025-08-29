@@ -20,7 +20,7 @@
       <option name="useCurrentConnection" value="false" />
     </EXTENSION>
     <option name="SCRIPT_NAME" value="$USER_HOME$/Library/Caches/pypoetry/virtualenvs/fitpet-scraper-R7HbPiHl-py3.12/bin/celery" />
-    <option name="PARAMETERS" value="-A app.config.celery beat --loglevel=INFO" />
+    <option name="PARAMETERS" value="-A app.task.celery beat --loglevel=INFO" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />

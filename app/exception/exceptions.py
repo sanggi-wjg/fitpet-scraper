@@ -23,6 +23,6 @@ class UnsupportedChannelException(FitpetScraperException):
 
     def __init__(self, channel: ChannelEnum):
         super().__init__(
-            message=f"{channel} 은(는) 지원하지 않는 채널입니다.",
+            message=f"{channel.value} 은(는) 지원하지 않는 채널입니다.",
             error_code=ErrorCodeEnum.UNSUPPORTED_CHANNEL,
         )

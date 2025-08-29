@@ -24,7 +24,7 @@ class Settings(BaseSettings):
         broker: str
         backend: str
         once_backend: str
-        once_default_timeout: int
+        once_default_timeout: int  # seconds
 
     class SlackValue(BaseModel):
         bot_token: str

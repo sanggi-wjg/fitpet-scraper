@@ -24,7 +24,7 @@ class SlackClient:
     @run_catching
     def upload_file(self, filepath: str, channel: str) -> bool:
         if not os.path.exists(filepath):
-            raise Exception(f"File not found: {filepath}")
+            raise FileNotFoundError(f"File not found: {filepath}")
 
         self.client.files_upload_v2(file=filepath, channel=channel)
         return True

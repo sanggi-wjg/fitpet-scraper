@@ -1,0 +1,54 @@
+import logging
+
+from celery import Celery
+from celery.schedules import crontab
+from celery.signals import task_failure
+
+from app.config.settings import get_settings
+
+settings = get_settings()
+
+celery_app = Celery(
+    "fitpetScraper",
+    broker=settings.celery.broker,
+    backend=settings.celery.backend,
+)
+celery_app.autodiscover_tasks(packages=["app.task"])
+celery_app.conf.timezone = "UTC"
+
+celery_app.conf.ONCE = {
+    "backend": "celery_once.backends.Redis",
+    "settings": {
+        "url": settings.celery.once_backend,
+        "default_timeout": settings.celery.once_default_timeout,
+    },
+}
+
+celery_app.conf.beat_schedule = {
+    "scrape_naver_shopping_task": {
+        "task": "app.task.tasks.scrape_naver_shopping_task",
+        "schedule": crontab(minute="10", hour="1"),  # 매일 1시 10분에 실행
+        "args": (),
+    },
+}
+
+# @setup_logging.connect
+# def config_loggers(*args, **kwargs):
+#     sys.excepthook = log_exception_handler
+
+
+@task_failure.connect
+def task_failure_handler(
+    sender=None,
+    task_id=None,
+    exception=None,
+    args=None,
+    kwargs=None,
+    traceback=None,
+    einfo=None,
+    **kwds,
+):
+    logging.error(
+        f"Task {sender.name} failed with task_id: {task_id}. " f"Exception: {exception}. Traceback: {traceback}",
+        exc_info=einfo,
+    )

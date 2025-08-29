@@ -1,12 +1,13 @@
+from collections.abc import Callable
 from functools import wraps
-from typing import TypeVar, Any, Callable, Self, Generic
+from typing import TypeVar, Any, Self, Generic
 
 T = TypeVar("T")
 
 
 class Result(Generic[T]):
 
-    def __init__(self, value: Any = None, exception: Exception | None = None):
+    def __init__(self, value: T | None = None, exception: Exception | None = None):
         self.value = value
         self.exception = exception
         self.is_success = exception is None

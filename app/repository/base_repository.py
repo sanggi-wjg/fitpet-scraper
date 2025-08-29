@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import TypeVar, Generic, Optional, Type, List
+from typing import TypeVar, Generic
 
 from sqlalchemy.orm import Session
 
@@ -10,7 +10,7 @@ T = TypeVar("T", bound=Base)
 
 class BaseRepository(Generic[T], ABC):
 
-    def __init__(self, entity: Type[T]):
+    def __init__(self, entity: type[T]):
         self.entity = entity
 
     @property
@@ -20,13 +20,13 @@ class BaseRepository(Generic[T], ABC):
             raise RuntimeError("Session is not set. Use @transactional decorator.")
         return session
 
-    def find_by_id(self, entity_id: int) -> Optional[T]:
+    def find_by_id(self, entity_id: int) -> T | None:
         return self.session.query(self.entity).filter_by(id=entity_id).first()
 
-    def find_all(self) -> List[T]:
+    def find_all(self) -> list[T]:
         return self.session.query(self.entity).all()
 
-    def find_all_by_ids(self, entity_ids: List[int]) -> List[T]:
+    def find_all_by_ids(self, entity_ids: list[int]) -> list[T]:
         if not entity_ids:
             return []
         return self.session.query(self.entity).filter(self.entity.id.in_(entity_ids)).all()
@@ -36,13 +36,13 @@ class BaseRepository(Generic[T], ABC):
         # self.session.flush()
         return entity
 
-    def save_all(self, entities: List[T]) -> List[T]:
+    def save_all(self, entities: list[T]) -> list[T]:
         if not entities:
             return []
         self.session.add_all(entities)
         return entities
 
-    def bulk_save(self, entities: List[T]):
+    def bulk_save(self, entities: list[T]):
         if not entities:
             return
         self.session.bulk_save_objects(entities)

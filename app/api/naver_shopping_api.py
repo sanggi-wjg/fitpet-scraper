@@ -1,5 +1,4 @@
 import logging
-from typing import List
 
 import httpx
 
@@ -36,7 +35,7 @@ class NaverShoppingApi:
             response.raise_for_status()
             return NaverShoppingApiResponse(**response.json())
 
-    def search_with_all_pages(self, query: str) -> List[NaverShoppingApiResponse.Item]:
+    def search_with_all_pages(self, query: str) -> list[NaverShoppingApiResponse.Item]:
         all_items = []
         start = 1
 

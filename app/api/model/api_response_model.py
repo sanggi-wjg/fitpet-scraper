@@ -1,5 +1,4 @@
 from decimal import Decimal
-from typing import List
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -48,7 +47,7 @@ class NaverShoppingApiResponse(BaseModel):
     total: int
     start: int
     display: int
-    items: List[Item]
+    items: list[Item]
 
     def has_items(self) -> bool:
         return len(self.items) > 0

@@ -10,7 +10,6 @@ from app.service.model.service_models import ScrapedProductModel
 
 
 class ScrapedProductService:
-
     def __init__(self):
         self.scraped_product_repository = ScrapedProductRepository(ScrapedProduct)
         self.scraped_product_detail_repository = ScrapedProductDetailRepository(ScrapedProductDetail)
@@ -24,11 +23,11 @@ class ScrapedProductService:
 
     @transactional()
     def save_naver_shopping_search_result(
-            self,
-            searched_items: list[NaverShoppingApiResponse.Item],
-            keyword_id: int,
-            keyword_word: str,
-            is_tracking_required: bool,
+        self,
+        searched_items: list[NaverShoppingApiResponse.Item],
+        keyword_id: int,
+        keyword_word: str,
+        is_tracking_required: bool,
     ):
         for item in searched_items:
             if keyword_word not in item.title:
