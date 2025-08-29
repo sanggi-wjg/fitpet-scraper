@@ -3,52 +3,75 @@ LOGGING_CONFIG = {
     "disable_existing_loggers": False,
     "formatters": {
         "default": {
-            # "format": "%(asctime)s [%(levelname)-8s] %(name)-20s | %(funcName)s:%(lineno)d | %(message)s",
+            "()": "uvicorn.logging.DefaultFormatter",
+            "fmt": "%(levelprefix)s %(message)s",
+            "use_colors": None,
+        },
+        "access": {
+            "()": "uvicorn.logging.AccessFormatter",
+            "fmt": '%(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s',  # noqa: E501
+        },
+        "standard": {
             "format": "%(asctime)s [%(levelname)s] %(name)s.%(funcName)s:%(lineno)d | %(message)s",
         },
     },
     "handlers": {
-        "stream": {
-            "class": "logging.StreamHandler",
-            "formatter": "default",
+        "default": {
             "level": "INFO",
+            "formatter": "default",
+            "class": "logging.StreamHandler",
             "stream": "ext://sys.stdout",
         },
-        "file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "formatter": "default",
-            "level": "INFO",
-            "filename": "app.log",
-            "maxBytes": 1024 * 1024,  # 1MB
-            "backupCount": 100,
-            "encoding": "UTF-8",
+        "access": {
+            "formatter": "access",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout",
+        },
+        "standard": {
+            "level": "DEBUG",
+            "formatter": "standard",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout",
         },
     },
     "loggers": {
         "": {
             "level": "INFO",
-            "handlers": ["stream", "file"],
+            "handlers": ["standard"],
             "propagate": False,
         },
-        "httpx": {
-            "level": "WARNING",
-            "handlers": ["stream"],
-            "propagate": False,
-        },
-        "sqlalchemy.engine": {
+        "uvicorn": {
+            "handlers": ["default"],
             "level": "INFO",
-            "handlers": ["stream", "file"],
             "propagate": False,
         },
-        "celery": {
+        "uvicorn.access": {
+            "handlers": ["access"],
             "level": "INFO",
-            "handlers": ["stream", "file"],
             "propagate": False,
         },
-        "celery.task": {
+        "uvicorn.error": {
             "level": "INFO",
-            "handlers": ["stream", "file"],
-            "propagate": False,
         },
+        # "httpx": {
+        #     "level": "WARNING",
+        #     "handlers": ["standard"],
+        #     "propagate": False,
+        # },
+        # "sqlalchemy.engine": {
+        #     "level": "DEBUG",
+        #     "handlers": ["standard"],
+        #     "propagate": False,
+        # },
+        # "celery": {
+        #     "level": "INFO",
+        #     "handlers": ["standard"],
+        #     "propagate": False,
+        # },
+        # "celery.task": {
+        #     "level": "INFO",
+        #     "handlers": ["standard"],
+        #     "propagate": False,
+        # },
     },
 }

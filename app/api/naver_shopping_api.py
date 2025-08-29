@@ -7,11 +7,14 @@ from app.api.model.api_response_model import NaverShoppingApiResponse
 from app.config.settings import get_settings
 from app.util.decorators import run_catching, Result
 
-settings = get_settings()
 logger = logging.getLogger(__name__)
+settings = get_settings()
 
 
 class NaverShoppingApi:
+    """
+    https://developers.naver.com/docs/serviceapi/search/shopping/shopping.md#%EC%87%BC%ED%95%91
+    """
 
     def __init__(self):
         self.client_id = settings.naver_shopping.client_id
@@ -41,7 +44,7 @@ class NaverShoppingApi:
             query, start, self.default_display, self.default_sort
         )
         if first_result.is_failure:
-            logger.error(f"🔥 네이버 쇼핑 API 호출 실패. {first_result.exception}")
+            logger.error(f"🔥 네이버 쇼핑 API 호출 실패, {first_result.exception}")
             raise first_result.exception
 
         first_response = first_result.get_or_raise()
@@ -57,6 +60,6 @@ class NaverShoppingApi:
             if result.is_success and result.get_or_raise().has_items():
                 all_items.extend(result.get_or_raise().items)
             else:
-                logger.warning(f"⚠️ 네이버 쇼핑 페이지 {start}에서 API 호출 실패: {result.exception}")
+                logger.warning(f"⚠️ 네이버 쇼핑 페이지 {start}에서 API 호출 실패, {result.exception}")
 
         return all_items

@@ -1,3 +1,4 @@
+import os
 from functools import lru_cache
 
 from pydantic import BaseModel
@@ -25,11 +26,31 @@ class Settings(BaseSettings):
         once_backend: str
         once_default_timeout: int
 
+    class SlackValue(BaseModel):
+        bot_token: str
+        channel_test_id: str
+
+    class DirectoryValue(BaseModel):
+        base: str = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+        @property
+        def log(self):
+            return os.path.join(self.base, "logs")
+
+        @property
+        def data(self):
+            return os.path.join(self.base, "data")
+
     naver_shopping: NaverShoppingValue
     sqlite_database: SqliteDatabaseValue
     celery: CeleryValue
+    slack: SlackValue
+    directory: DirectoryValue = DirectoryValue()
 
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()  # type: ignore[call-arg]
+    settings = Settings()  # type: ignore[call-arg]
+    for path in [settings.directory.log, settings.directory.data]:
+        os.makedirs(path, exist_ok=True)
+    return settings

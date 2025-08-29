@@ -1,4 +1,4 @@
-from typing import List
+from functools import lru_cache
 
 from app.api.model.api_response_model import NaverShoppingApiResponse
 from app.config.database import transactional
@@ -16,20 +16,24 @@ class ScrapedProductService:
         self.scraped_product_detail_repository = ScrapedProductDetailRepository(ScrapedProductDetail)
 
     @transactional()
-    def get_tracking_required_products(self, channel: ChannelEnum) -> List[ScrapedProductModel]:
+    def get_tracking_required_products(self, channel: ChannelEnum) -> list[ScrapedProductModel]:
         return [
             ScrapedProductModel.model_validate(item)
-            for item in self.scraped_product_repository.find_all_channel_and_tracking_required(channel)
+            for item in self.scraped_product_repository.find_all_by_channel_and_tracking_required(channel)
         ]
 
     @transactional()
     def save_naver_shopping_search_result(
-        self,
-        searched_items: List[NaverShoppingApiResponse.Item],
-        keyword_id: int,
-        is_tracking_required: bool,
+            self,
+            searched_items: list[NaverShoppingApiResponse.Item],
+            keyword_id: int,
+            keyword_word: str,
+            is_tracking_required: bool,
     ):
         for item in searched_items:
+            if keyword_word not in item.title:
+                continue
+
             scraped_product = self.scraped_product_repository.find_by_channel_and_product_id(
                 ChannelEnum.NAVER_SHOPPING, item.product_id
             )
@@ -63,3 +67,8 @@ class ScrapedProductService:
                     scraped_result=item.model_dump_json(),
                 )
             )
+
+
+@lru_cache
+def get_scraped_product_service() -> ScrapedProductService:
+    return ScrapedProductService()

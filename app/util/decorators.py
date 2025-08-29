@@ -15,7 +15,7 @@ class Result(Generic[T]):
     def is_failure(self) -> bool:
         return not self.is_success
 
-    def get_or_none(self) -> T:
+    def get_or_none(self) -> T | None:
         return self.value if self.is_success else None
 
     def get_or_raise(self) -> T:
@@ -32,7 +32,7 @@ class Result(Generic[T]):
         return self
 
     def on_failure(self, action: Callable[[Exception], None]) -> Self:
-        if self.is_failure:
+        if self.is_failure and self.exception is not None:
             action(self.exception)
         return self
 

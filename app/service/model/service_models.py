@@ -18,4 +18,4 @@ class ScrapedProductModel(BaseModel):
     channel: ChannelEnum
     channel_product_id: str
     is_tracking_required: bool
-    keyword_id: int
+    keyword: KeywordModel
