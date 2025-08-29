@@ -12,7 +12,7 @@ class ScrapedProduct(Base):
     name = Column(String(1024), nullable=False, index=True)
     channel = Column(Enum(ChannelEnum), nullable=False, index=True)
     channel_product_id = Column(String(1024), nullable=False, index=True)
-    created_at = Column(DateTime, default=func.now(), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=func.now(), nullable=False)
     is_tracking_required = Column(Boolean, nullable=False, default=False)
 
     # relationships
@@ -21,7 +21,7 @@ class ScrapedProduct(Base):
     details = relationship("ScrapedProductDetail", back_populates="scraped_product")
 
     def __repr__(self):
-        return f"<Product(name='{self.name}', platform='{self.channel}')>"
+        return f"<Product(name='{self.name}', channel='{self.channel}', channel_product_id='{self.channel_product_id}')>"
 
     def update_tracking_require(self):
         self.is_tracking_required = True

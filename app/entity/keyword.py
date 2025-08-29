@@ -9,9 +9,9 @@ class Keyword(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     word = Column(String(256), nullable=False, unique=True, index=True)
-    created_at = Column(DateTime, default=func.now(), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=func.now(), nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False)
-    deleted_at = Column(DateTime, default=None)
+    deleted_at = Column(DateTime(timezone=True), default=None)
 
     # relationships
     scraped_products = relationship("ScrapedProduct", back_populates="keyword")

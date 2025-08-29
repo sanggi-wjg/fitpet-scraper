@@ -14,6 +14,7 @@ from app.service.keyword_service import KeywordService, get_keyword_service
 from app.task.tasks import scrape_naver_shopping_task
 
 dictConfig(logging_config())
+create_tables()
 
 app = FastAPI()
 app.add_exception_handler(Exception, global_exception_handler)
@@ -31,14 +32,10 @@ async def create_keyword_endpoint(
     return {"message": f"{request_dto.word} created successfully"}
 
 
-@app.post("/init/create-table", status_code=status.HTTP_201_CREATED)
-async def create_tables_endpoint():
-    create_tables()
-    return {"message": "Tables created successfully"}
-
-
 @app.post("/api/v1/scrape/{channel}", status_code=status.HTTP_202_ACCEPTED)
-async def scrape_endpoint(channel: ChannelEnum):
+async def scrape_endpoint(
+    channel: ChannelEnum,
+):
     if channel == ChannelEnum.NAVER_SHOPPING:
         scrape_naver_shopping_task.delay()
     else:

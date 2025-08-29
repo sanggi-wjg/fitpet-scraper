@@ -11,10 +11,12 @@ from app.api.naver_shopping_api import NaverShoppingApi
 from app.api.slack_client import SlackClient
 from app.config.settings import get_settings
 from app.enum.channel_enum import ChannelEnum
+from app.repository.model.search_conditions import ScrapedProductSearchCondition
 from app.service.keyword_service import KeywordService
 from app.service.model.service_models import ScrapedProductWithRelatedModel
 from app.service.scraped_product_service import ScrapedProductService
 from app.task.celery import celery_app
+from app.util.util_datetime import DateTimeUtil
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -42,7 +44,12 @@ def scrape_naver_shopping_task():
 def create_excel_from_scraped_products(scraped_product_service: ScrapedProductService) -> str:
     logger.info("[CREATE_EXCEL_FROM_SCRAPED_PRODUCTS] 🚀 엑셀 생성 시작 🚀")
 
-    scraped_products = scraped_product_service.get_all_products_with_related()
+    scraped_products = scraped_product_service.get_all_products_with_related(
+        ScrapedProductSearchCondition(
+            created_at_after=DateTimeUtil.subtract_hours_from(1),
+            channel=ChannelEnum.NAVER_SHOPPING,
+        )
+    )
     dataset = defaultdict(list)
 
     for product in scraped_products:

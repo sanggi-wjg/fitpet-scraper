@@ -4,9 +4,11 @@ from app.api.model.api_response_model import NaverShoppingApiResponse
 from app.config.database import transactional
 from app.entity import ScrapedProduct, ScrapedProductDetail
 from app.enum.channel_enum import ChannelEnum
+from app.repository.model.search_conditions import ScrapedProductSearchCondition
 from app.repository.scraped_product_detail_repository import ScrapedProductDetailRepository
 from app.repository.scraped_product_repository import ScrapedProductRepository
 from app.service.model.service_models import ScrapedProductModel, ScrapedProductWithRelatedModel
+from app.util.util_datetime import DateTimeUtil
 
 
 class ScrapedProductService:
@@ -22,10 +24,12 @@ class ScrapedProductService:
         ]
 
     @transactional()
-    def get_all_products_with_related(self) -> list[ScrapedProductWithRelatedModel]:
+    def get_all_products_with_related(
+        self, search_condition: ScrapedProductSearchCondition
+    ) -> list[ScrapedProductWithRelatedModel]:
         return [
             ScrapedProductWithRelatedModel.model_validate(item)
-            for item in self.scraped_product_repository.find_all_with_related()
+            for item in self.scraped_product_repository.find_all_with_related(search_condition)
         ]
 
     @transactional()
@@ -59,6 +63,21 @@ class ScrapedProductService:
 
             if not is_tracking_required and scraped_product.is_tracking_required:
                 scraped_product.update_tracking_disable()
+
+            # 3시간 이내 중복건은 제외처리
+            exists_detail = None
+            hours_ago = DateTimeUtil.subtract_hours_from(3)
+
+            for detail in scraped_product.details:
+                if (
+                    detail.created_at_with_timezone >= hours_ago
+                    and detail.mall_name == item.mall_name
+                    and detail.link == item.link
+                ):
+                    exists_detail = detail
+                    break
+            if exists_detail:
+                continue
 
             scraped_product.details.append(
                 ScrapedProductDetail(
