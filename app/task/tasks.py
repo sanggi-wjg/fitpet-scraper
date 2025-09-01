@@ -1,3 +1,4 @@
+import json
 import logging
 import os.path
 from collections import defaultdict
@@ -16,7 +17,7 @@ from app.service.keyword_service import KeywordService
 from app.service.model.service_models import ScrapedProductWithRelatedModel
 from app.service.scraped_product_service import ScrapedProductService
 from app.task.celery import celery_app
-from app.util.util_datetime import DateTimeUtil
+from app.util.util_datetime import DatetimeUtil
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -46,7 +47,7 @@ def create_excel_from_scraped_products(scraped_product_service: ScrapedProductSe
 
     scraped_products = scraped_product_service.get_all_products_with_related(
         ScrapedProductSearchCondition(
-            created_at_after=DateTimeUtil.subtract_hours_from(1),
+            created_at_after=DatetimeUtil.subtract_hours_from(1),
             channel=ChannelEnum.NAVER_SHOPPING,
         )
     )
@@ -58,7 +59,7 @@ def create_excel_from_scraped_products(scraped_product_service: ScrapedProductSe
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     excel_filepath = os.path.join(settings.directory.data, f"scraped_products_{timestamp}.xlsx")
 
-    with pd.ExcelWriter(excel_filepath, engine="openpyxl") as writer:
+    with pd.ExcelWriter(excel_filepath, engine="xlsxwriter") as writer:
         for keyword, rows in dataset.items():
             df = pd.DataFrame(rows)
             df.to_excel(writer, sheet_name=keyword, index=False)
@@ -70,24 +71,30 @@ def create_excel_from_scraped_products(scraped_product_service: ScrapedProductSe
 def flatten_scraped_product_details(
     scraped_product: ScrapedProductWithRelatedModel,
 ) -> list[dict[str, Any]]:
-    return [
-        {
-            "name": scraped_product.name,
-            "channel": scraped_product.channel.value,
-            "channel_product_id": scraped_product.channel_product_id,
-            "product_created_at": scraped_product.created_at,
-            "link": detail.link,
-            "image_link": detail.image_link,
-            "price": detail.price,
-            "mall_name": detail.mall_name,
-            "product_type": detail.product_type,
-            "brand": detail.brand,
-            "maker": detail.maker,
-            "scraped_result": detail.scraped_result,
-            "detail_created_at": detail.created_at,
-        }
-        for detail in scraped_product.details
-    ]
+    result = []
+    for detail in scraped_product.details:
+        scraped_result = json.loads(detail.scraped_result)
+        result.append(
+            {
+                "name": scraped_product.name,
+                "channel": scraped_product.channel.value,
+                "channel_product_id": scraped_product.channel_product_id,
+                "product_created_at": scraped_product.created_at,
+                "link": detail.link,
+                "image_link": detail.image_link,
+                "price": detail.price,
+                "mall_name": detail.mall_name,
+                "product_type": detail.product_type,
+                "brand": detail.brand,
+                "maker": detail.maker,
+                "category1": scraped_result.get("category1", ""),
+                "category2": scraped_result.get("category2", ""),
+                "category3": scraped_result.get("category3", ""),
+                "category4": scraped_result.get("category4", ""),
+                "detail_created_at": detail.created_at,
+            }
+        )
+    return result
 
 
 def scrape_products_by_keywords(

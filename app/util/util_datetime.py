@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import pytz
 
 
-class DateTimeUtil:
+class DatetimeUtil:
 
     @classmethod
     def utc_now(cls) -> datetime:
@@ -16,7 +16,7 @@ class DateTimeUtil:
         return dt.astimezone(pytz.UTC)
 
     @classmethod
-    def subtract_hours_from(cls, hours: int, dt: datetime = None) -> datetime:
+    def subtract_hours_from(cls, hours: int, dt: datetime | None = None) -> datetime:
         if dt is None:
             return cls.utc_now() - timedelta(hours=hours)
-        return dt - timedelta(hours=hours)
+        return cls.to_utc(dt) - timedelta(hours=hours)
