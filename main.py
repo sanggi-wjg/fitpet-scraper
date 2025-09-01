@@ -1,4 +1,5 @@
 from logging.config import dictConfig
+from typing import Annotated
 
 import uvicorn
 from fastapi import Depends, FastAPI
@@ -22,6 +23,8 @@ app.add_exception_handler(FitpetScraperException, fitpet_scraper_exception_handl
 app.add_exception_handler(KeywordAlreadyExistsException, fitpet_scraper_exception_handler)
 app.add_exception_handler(UnsupportedChannelException, fitpet_scraper_exception_handler)
 
+GetKeyWordService = Annotated[KeywordService, Depends(get_keyword_service)]
+
 
 @app.get("/", status_code=status.HTTP_200_OK)
 async def root():
@@ -29,16 +32,14 @@ async def root():
 
 
 @app.get("/api/v1/keywords", status_code=status.HTTP_200_OK)
-async def get_keywords(
-    keyword: KeywordService = Depends(get_keyword_service),
-):
+async def get_keywords(keyword: GetKeyWordService):
     return keyword.get_available_keywords()
 
 
 @app.post("/api/v1/keywords", status_code=status.HTTP_201_CREATED)
 async def create_keyword_endpoint(
     request_dto: CreateKeywordRequestDto,
-    keyword_service: KeywordService = Depends(get_keyword_service),
+    keyword_service: GetKeyWordService,
 ):
     keyword_service.create_keyword(request_dto.word)
     return {"message": f"{request_dto.word} created successfully"}
