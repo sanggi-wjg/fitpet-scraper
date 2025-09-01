@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from app.api.model.api_response_model import NaverShoppingApiResponse
+from app.client.model.api_response_model import NaverShoppingApiResponse
 from app.config.database import transactional
 from app.entity import ScrapedProduct, ScrapedProductDetail
 from app.enum.channel_enum import ChannelEnum
