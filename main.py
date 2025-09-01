@@ -58,7 +58,7 @@ async def scrape_endpoint(
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
-        port=9000,
+        port=8000,
         reload=False,
         reload_delay=3,
         use_colors=True,

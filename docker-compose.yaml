@@ -25,7 +25,7 @@ services:
       - NAVER_SHOPPING__CLIENT_SECRET=${NAVER_SHOPPING__CLIENT_SECRET}
       - SQLITE_DATABASE__PATH=sqlite:///data/fitpet_scraper.db
       - CELERY__BROKER=redis://redis:6379/0
-      - CELERY__BACKEND=db+sqlite:///fitpet_scraper.db
+      - CELERY__BACKEND=db+sqlite:///data/fitpet_scraper.db
       - CELERY__ONCE_BACKEND=redis://redis:6379/1
       - CELERY__ONCE_DEFAULT_TIMEOUT=300
       - SLACK__BOT_TOKEN=${SLACK__BOT_TOKEN}
@@ -45,7 +45,7 @@ services:
       - NAVER_SHOPPING__CLIENT_SECRET=${NAVER_SHOPPING__CLIENT_SECRET}
       - SQLITE_DATABASE__PATH=sqlite:///data/fitpet_scraper.db
       - CELERY__BROKER=redis://redis:6379/0
-      - CELERY__BACKEND=db+sqlite:///fitpet_scraper.db
+      - CELERY__BACKEND=db+sqlite:///data/fitpet_scraper.db
       - CELERY__ONCE_BACKEND=redis://redis:6379/1
       - CELERY__ONCE_DEFAULT_TIMEOUT=300
       - SLACK__BOT_TOKEN=${SLACK__BOT_TOKEN}
@@ -65,7 +65,7 @@ services:
       - NAVER_SHOPPING__CLIENT_SECRET=${NAVER_SHOPPING__CLIENT_SECRET}
       - SQLITE_DATABASE__PATH=sqlite:///data/fitpet_scraper.db
       - CELERY__BROKER=redis://redis:6379/0
-      - CELERY__BACKEND=db+sqlite:///fitpet_scraper.db
+      - CELERY__BACKEND=db+sqlite:///data/fitpet_scraper.db
       - CELERY__ONCE_BACKEND=redis://redis:6379/1
       - CELERY__ONCE_DEFAULT_TIMEOUT=300
       - SLACK__BOT_TOKEN=${SLACK__BOT_TOKEN}
