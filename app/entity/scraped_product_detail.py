@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, String, Numeric, Text, ForeignKey, func,
 from sqlalchemy.orm import relationship
 
 from app.config.database import Base
-from app.util.util_datetime import DateTimeUtil
+from app.util.util_datetime import DatetimeUtil
 
 
 class ScrapedProductDetail(Base):
@@ -32,4 +32,4 @@ class ScrapedProductDetail(Base):
 
     @property
     def created_at_with_timezone(self) -> datetime:
-        return DateTimeUtil.to_utc(self.created_at)
+        return DatetimeUtil.to_utc(self.created_at)

@@ -8,7 +8,7 @@ from app.repository.model.search_conditions import ScrapedProductSearchCondition
 from app.repository.scraped_product_detail_repository import ScrapedProductDetailRepository
 from app.repository.scraped_product_repository import ScrapedProductRepository
 from app.service.model.service_models import ScrapedProductModel, ScrapedProductWithRelatedModel
-from app.util.util_datetime import DateTimeUtil
+from app.util.util_datetime import DatetimeUtil
 
 
 class ScrapedProductService:
@@ -66,7 +66,7 @@ class ScrapedProductService:
 
             # 3시간 이내 중복건은 제외처리
             exists_detail = None
-            hours_ago = DateTimeUtil.subtract_hours_from(3)
+            hours_ago = DatetimeUtil.subtract_hours_from(3)
 
             for detail in scraped_product.details:
                 if (
