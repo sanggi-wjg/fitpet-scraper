@@ -28,7 +28,7 @@ class Settings(BaseSettings):
 
     class SlackValue(BaseModel):
         bot_token: str
-        channel_test_id: str
+        channel_fitpet_scraper_id: str
 
     class DirectoryValue(BaseModel):
         base: str = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

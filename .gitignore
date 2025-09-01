@@ -122,5 +122,5 @@ dmypy.json
 
 .lock
 
-data/
+*.xlsx
 logs/

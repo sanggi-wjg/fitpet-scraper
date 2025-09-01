@@ -145,8 +145,8 @@ def send_slack_notification(filepath: str):
     logger.info("[SEND_SLACK_NOTIFICATION] 🚀 슬랙 웹훅 시작 🚀")
 
     slack_client = SlackClient()
-    upload_result = slack_client.upload_file(filepath, settings.slack.channel_test_id)
+    upload_result = slack_client.upload_file(filepath, settings.slack.channel_fitpet_scraper_id)
     if upload_result.is_failure:
-        logger.warning("Failed to upload file to slack")
+        logger.warning(f"[SEND_SLACK_NOTIFICATION] ⚠️⚠️⚠️⚠️ 슬랙 전송 실패: {upload_result.exception_or_none()}")
 
     logger.info("[SEND_SLACK_NOTIFICATION] 😎 슬랙 웹훅 종료 😎")

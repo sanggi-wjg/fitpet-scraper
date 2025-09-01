@@ -1,0 +1,80 @@
+name: fitpet-scraper
+
+services:
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "6400:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - NAVER_SHOPPING__CLIENT_ID=${NAVER_SHOPPING__CLIENT_ID}
+      - NAVER_SHOPPING__CLIENT_SECRET=${NAVER_SHOPPING__CLIENT_SECRET}
+      - SQLITE_DATABASE__PATH=sqlite:///data/fitpet_scraper.db
+      - CELERY__BROKER=redis://redis:6379/0
+      - CELERY__BACKEND=db+sqlite:///data/fitpet_scraper.db
+      - CELERY__ONCE_BACKEND=redis://redis:6379/1
+      - CELERY__ONCE_DEFAULT_TIMEOUT=300
+      - SLACK__BOT_TOKEN=${SLACK__BOT_TOKEN}
+      - SLACK__CHANNEL_FITPET_SCRAPER_ID=${SLACK__CHANNEL_FITPET_SCRAPER_ID}
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000" ]
+
+  celery-worker:
+    build: .
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - NAVER_SHOPPING__CLIENT_ID=${NAVER_SHOPPING__CLIENT_ID}
+      - NAVER_SHOPPING__CLIENT_SECRET=${NAVER_SHOPPING__CLIENT_SECRET}
+      - SQLITE_DATABASE__PATH=sqlite:///data/fitpet_scraper.db
+      - CELERY__BROKER=redis://redis:6379/0
+      - CELERY__BACKEND=db+sqlite:///data/fitpet_scraper.db
+      - CELERY__ONCE_BACKEND=redis://redis:6379/1
+      - CELERY__ONCE_DEFAULT_TIMEOUT=300
+      - SLACK__BOT_TOKEN=${SLACK__BOT_TOKEN}
+      - SLACK__CHANNEL_FITPET_SCRAPER_ID=${SLACK__CHANNEL_FITPET_SCRAPER_ID}
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: [ "celery", "-A", "app.task.celery", "worker", "--loglevel=info" ]
+
+  celery-beat:
+    build: .
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - NAVER_SHOPPING__CLIENT_ID=${NAVER_SHOPPING__CLIENT_ID}
+      - NAVER_SHOPPING__CLIENT_SECRET=${NAVER_SHOPPING__CLIENT_SECRET}
+      - SQLITE_DATABASE__PATH=sqlite:///data/fitpet_scraper.db
+      - CELERY__BROKER=redis://redis:6379/0
+      - CELERY__BACKEND=db+sqlite:///data/fitpet_scraper.db
+      - CELERY__ONCE_BACKEND=redis://redis:6379/1
+      - CELERY__ONCE_DEFAULT_TIMEOUT=300
+      - SLACK__BOT_TOKEN=${SLACK__BOT_TOKEN}
+      - SLACK__CHANNEL_FITPET_SCRAPER_ID=${SLACK__CHANNEL_FITPET_SCRAPER_ID}
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: [ "celery", "-A", "app.task.celery", "beat", "--loglevel=info" ]
+
+
+volumes:
+  redis_data:
