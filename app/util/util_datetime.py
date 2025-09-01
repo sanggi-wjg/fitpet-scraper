@@ -19,4 +19,6 @@ class DatetimeUtil:
     def subtract_hours_from(cls, hours: int, dt: datetime | None = None) -> datetime:
         if dt is None:
             return cls.utc_now() - timedelta(hours=hours)
-        return cls.to_utc(dt) - timedelta(hours=hours)
+        if dt.tzinfo is None:
+            dt = cls.to_utc(dt)
+        return dt - timedelta(hours=hours)

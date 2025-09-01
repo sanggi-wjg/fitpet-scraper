@@ -23,6 +23,18 @@ app.add_exception_handler(KeywordAlreadyExistsException, fitpet_scraper_exceptio
 app.add_exception_handler(UnsupportedChannelException, fitpet_scraper_exception_handler)
 
 
+@app.get("/", status_code=status.HTTP_200_OK)
+async def root():
+    return {"message": "Hello World"}
+
+
+@app.get("/api/v1/keywords", status_code=status.HTTP_200_OK)
+async def get_keywords(
+    keyword: KeywordService = Depends(get_keyword_service),
+):
+    return keyword.get_available_keywords()
+
+
 @app.post("/api/v1/keywords", status_code=status.HTTP_201_CREATED)
 async def create_keyword_endpoint(
     request_dto: CreateKeywordRequestDto,
@@ -46,7 +58,7 @@ async def scrape_endpoint(
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
-        port=8000,
+        port=9000,
         reload=False,
         reload_delay=3,
         use_colors=True,
