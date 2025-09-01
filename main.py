@@ -26,17 +26,22 @@ app.add_exception_handler(UnsupportedChannelException, fitpet_scraper_exception_
 GetKeyWordService = Annotated[KeywordService, Depends(get_keyword_service)]
 
 
-@app.get("/", status_code=status.HTTP_200_OK)
+@app.get("/", status_code=status.HTTP_200_OK, tags=["root"])
 async def root():
     return {"message": "Hello World"}
 
 
-@app.get("/api/v1/keywords", status_code=status.HTTP_200_OK)
+@app.get("/health", status_code=status.HTTP_200_OK, tags=["health"])
+async def health_check():
+    return {"status": "healthy"}
+
+
+@app.get("/api/v1/keywords", status_code=status.HTTP_200_OK, tags=["keywords"])
 async def get_keywords(keyword: GetKeyWordService):
     return keyword.get_available_keywords()
 
 
-@app.post("/api/v1/keywords", status_code=status.HTTP_201_CREATED)
+@app.post("/api/v1/keywords", status_code=status.HTTP_201_CREATED, tags=["keywords"])
 async def create_keyword_endpoint(
     request_dto: CreateKeywordRequestDto,
     keyword_service: GetKeyWordService,
@@ -45,7 +50,7 @@ async def create_keyword_endpoint(
     return {"message": f"{request_dto.word} created successfully"}
 
 
-@app.post("/api/v1/scrape/{channel}", status_code=status.HTTP_202_ACCEPTED)
+@app.post("/api/v1/scrape/{channel}", status_code=status.HTTP_202_ACCEPTED, tags=["scrape"])
 async def scrape_endpoint(
     channel: ChannelEnum,
 ):

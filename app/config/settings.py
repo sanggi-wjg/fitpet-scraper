@@ -1,13 +1,32 @@
+import json
 import os
 from functools import lru_cache
+from typing import Any
 
+import boto3
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+class AWSSecretsManager:
+
+    def __init__(self, region_name: str = "ap-northeast-2"):
+        self.client = boto3.client("secretsmanager", region_name=region_name)
+
+    def get_secret(self, secret_name: str) -> dict[str, Any]:
+        try:
+            response = self.client.get_secret_value(SecretId=secret_name)
+            secret_string = response.get("SecretString")
+            if secret_string:
+                return json.loads(secret_string)
+            return {}
+        except Exception as e:
+            raise RuntimeError(f"😢 AWS Secrets Manager에서 '{secret_name}' 비밀을 가져오는데 실패했습니다: {e}")
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=".env" if os.getenv("ENVIRONMENT", "local") == "local" else None,
         env_file_encoding="UTF-8",
         env_nested_delimiter="__",
         nested_model_default_partial_update=False,
@@ -46,6 +65,16 @@ class Settings(BaseSettings):
     celery: CeleryValue
     slack: SlackValue
     directory: DirectoryValue = DirectoryValue()
+
+    def __init__(self, **kwargs):
+        if os.getenv("ENVIRONMENT", "local") != "local":
+            aws_secrets_manager = AWSSecretsManager()
+            secrets = aws_secrets_manager.get_secret("fitpet-scraper")
+
+            for key, value in secrets.items():
+                os.environ[key.upper()] = str(value)
+
+        super().__init__(**kwargs)
 
 
 @lru_cache
