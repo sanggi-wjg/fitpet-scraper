@@ -7,8 +7,6 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
-black = "^25.1.0"
-mypy = "^1.17.1"
 sqlalchemy = "^2.0.43"
 httpx = "^0.28.1"
 argparse = "^1.4.0"
@@ -26,6 +24,10 @@ xlsxwriter = "^3.2.5"
 pytz = "^2025.2"
 boto3 = "^1.40.21"
 sqlalchemy-utc = "^0.14.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+mypy = "^1.17.1"
 
 [build-system]
 requires = ["poetry-core"]

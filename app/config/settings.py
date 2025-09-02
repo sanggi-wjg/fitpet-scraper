@@ -4,6 +4,7 @@ from functools import lru_cache
 from typing import Any
 
 import boto3
+from botocore.exceptions import ClientError, BotoCoreError
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -20,7 +21,7 @@ class AWSSecretsManager:
             if secret_string:
                 return json.loads(secret_string)
             return {}
-        except Exception as e:
+        except (ClientError, BotoCoreError, json.JSONDecodeError) as e:
             raise RuntimeError(f"😢 AWS Secrets Manager에서 '{secret_name}' 비밀을 가져오는데 실패했습니다: {e}")
 
 
