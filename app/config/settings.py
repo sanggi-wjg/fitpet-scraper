@@ -14,15 +14,15 @@ class AWSSecretsManager:
     def __init__(self, region_name: str = "ap-northeast-2"):
         self.client = boto3.client("secretsmanager", region_name=region_name)
 
-    def get_secret(self, secret_name: str) -> dict[str, Any]:
+    def get_secret(self) -> dict[str, Any]:
         try:
-            response = self.client.get_secret_value(SecretId=secret_name)
+            response = self.client.get_secret_value(SecretId="fitpet-scraper")
             secret_string = response.get("SecretString")
             if secret_string:
                 return json.loads(secret_string)
             return {}
         except (ClientError, BotoCoreError, json.JSONDecodeError) as e:
-            raise RuntimeError(f"😢 AWS Secrets Manager에서 '{secret_name}' 비밀을 가져오는데 실패했습니다: {e}")
+            raise RuntimeError(f"😢😢😢 AWS Secrets Manager 비밀 값을 가져오는데 실패했습니다: {e}")
 
 
 class Settings(BaseSettings):
@@ -70,7 +70,7 @@ class Settings(BaseSettings):
     def __init__(self, **kwargs):
         if os.getenv("ENVIRONMENT", "local") != "local":
             aws_secrets_manager = AWSSecretsManager()
-            secrets = aws_secrets_manager.get_secret("fitpet-scraper")
+            secrets = aws_secrets_manager.get_secret()
 
             for key, value in secrets.items():
                 os.environ[key.upper()] = str(value)
