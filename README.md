@@ -44,11 +44,11 @@ cp .env.template .env
 ```shell
 docker login
 
-docker buildx build --platform=linux/arm64 --target web    -t girr311/fitpet-scraper:web    .
-docker buildx build --platform=linux/arm64 --target worker -t girr311/fitpet-scraper:worker .
-docker buildx build --platform=linux/arm64 --target beat   -t girr311/fitpet-scraper:beat   .
+# buildx 활성화 (한 번만 실행)
+docker buildx create --use --bootstrap --name multiarch
+docker buildx ls
 
-docker push girr311/fitpet-scraper:web
-docker push girr311/fitpet-scraper:worker
-docker push girr311/fitpet-scraper:beat
+docker buildx build --platform=linux/amd64,linux/arm64 --target web    -t girr311/fitpet-scraper:web2   . --push
+docker buildx build --platform=linux/amd64,linux/arm64 --target worker -t girr311/fitpet-scraper:worker . --push
+docker buildx build --platform=linux/amd64,linux/arm64 --target beat   -t girr311/fitpet-scraper:beat   . --push
 ```

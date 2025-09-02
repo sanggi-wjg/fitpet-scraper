@@ -69,11 +69,10 @@ class ScrapedProductService:
             hours_ago = DatetimeUtil.subtract_hours_from(3)
 
             for detail in scraped_product.details:
-                if (
-                    detail.created_at_with_timezone >= hours_ago
-                    and detail.mall_name == item.mall_name
-                    and detail.link == item.link
-                ):
+                if detail.created_at is None:
+                    exists_detail = detail
+                    break
+                if detail.created_at >= hours_ago and detail.mall_name == item.mall_name and detail.link == item.link:
                     exists_detail = detail
                     break
             if exists_detail:

@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, DateTime, Enum, func, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
+from sqlalchemy_utc import UtcDateTime, utcnow
 
 from app.config.database import Base
 from app.enum.channel_enum import ChannelEnum
@@ -12,7 +13,7 @@ class ScrapedProduct(Base):
     name = Column(String(1024), nullable=False, index=True)
     channel = Column(Enum(ChannelEnum), nullable=False, index=True)
     channel_product_id = Column(String(1024), nullable=False, index=True)
-    created_at = Column(DateTime(timezone=True), default=func.now(), nullable=False)
+    created_at = Column(UtcDateTime(), default=utcnow(), nullable=False)
     is_tracking_required = Column(Boolean, nullable=False, default=False)
 
     # relationships

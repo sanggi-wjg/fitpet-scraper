@@ -46,15 +46,14 @@ def create_excel_from_scraped_products(scraped_product_service: ScrapedProductSe
     logger.info("[CREATE_EXCEL_FROM_SCRAPED_PRODUCTS] 🚀 엑셀 생성 시작 🚀")
 
     scraped_products = scraped_product_service.get_all_products_with_related(
-        ScrapedProductSearchCondition(
-            created_at_after=DatetimeUtil.subtract_hours_from(1),
-            channel=ChannelEnum.NAVER_SHOPPING,
-        )
+        ScrapedProductSearchCondition(channel=ChannelEnum.NAVER_SHOPPING)
     )
     dataset = defaultdict(list)
 
     for product in scraped_products:
-        dataset[product.keyword.word].extend(flatten_scraped_product_details(product))
+        flattened = flatten_scraped_product_details(product)
+        if flattened is not None:
+            dataset[product.keyword.word].extend(flattened)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     excel_filepath = os.path.join(settings.directory.data, f"scraped_products_{timestamp}.xlsx")
@@ -70,16 +69,21 @@ def create_excel_from_scraped_products(scraped_product_service: ScrapedProductSe
 
 def flatten_scraped_product_details(
     scraped_product: ScrapedProductWithRelatedModel,
-) -> list[dict[str, Any]]:
+) -> list[dict[str, Any]] | None:
+    hours_ago = DatetimeUtil.subtract_hours_from(1)
+    recent_details = [detail for detail in scraped_product.details if detail.created_at >= hours_ago]
+    if not recent_details:
+        return None
+
     result = []
-    for detail in scraped_product.details:
+    for detail in recent_details:
         scraped_result = json.loads(detail.scraped_result)
         result.append(
             {
                 "name": scraped_product.name,
                 "channel": scraped_product.channel.value,
                 "channel_product_id": scraped_product.channel_product_id,
-                "product_created_at": scraped_product.created_at,
+                "product_created_at": str(scraped_product.created_at),
                 "link": detail.link,
                 "image_link": detail.image_link,
                 "price": detail.price,
@@ -91,7 +95,7 @@ def flatten_scraped_product_details(
                 "category2": scraped_result.get("category2", ""),
                 "category3": scraped_result.get("category3", ""),
                 "category4": scraped_result.get("category4", ""),
-                "detail_created_at": detail.created_at,
+                "detail_created_at": str(detail.created_at),
             }
         )
     return result
