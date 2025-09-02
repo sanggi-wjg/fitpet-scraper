@@ -23,6 +23,8 @@ class AWSSecretsManager:
             return {}
         except (ClientError, BotoCoreError, json.JSONDecodeError) as e:
             raise RuntimeError(f"😢😢😢 AWS Secrets Manager 비밀 값을 가져오는데 실패했습니다: {e}")
+        except Exception as e:
+            raise RuntimeError(f"🔥🔥🔥 알 수 없는 이유로 AWS Secrets Manager 비밀 값을 가져오는데 실패했습니다: {e}")
 
 
 class Settings(BaseSettings):
