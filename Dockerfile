@@ -22,4 +22,3 @@ CMD ["celery", "-A", "app.task.celery", "worker", "--loglevel=info"]
 
 FROM base AS beat
 CMD ["celery", "-A", "app.task.celery", "beat", "--loglevel=info"]
-

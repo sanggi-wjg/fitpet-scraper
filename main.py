@@ -5,7 +5,6 @@ import uvicorn
 from fastapi import Depends, FastAPI
 from starlette import status
 
-from app.config.database import create_tables
 from app.config.log import logging_config
 from app.dto.request_dto import CreateKeywordRequestDto
 from app.enum.channel_enum import ChannelEnum
@@ -15,7 +14,6 @@ from app.service.keyword_service import KeywordService, get_keyword_service
 from app.task.tasks import scrape_naver_shopping_task
 
 dictConfig(logging_config())
-create_tables()
 
 app = FastAPI()
 app.add_exception_handler(Exception, global_exception_handler)

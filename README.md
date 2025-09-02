@@ -48,7 +48,7 @@ docker login
 docker buildx create --use --bootstrap --name multiarch
 docker buildx ls
 
-docker buildx build --platform=linux/amd64,linux/arm64 --target web    -t girr311/fitpet-scraper:web2   . --push
+docker buildx build --platform=linux/amd64,linux/arm64 --target web    -t girr311/fitpet-scraper:web    . --push
 docker buildx build --platform=linux/amd64,linux/arm64 --target worker -t girr311/fitpet-scraper:worker . --push
 docker buildx build --platform=linux/amd64,linux/arm64 --target beat   -t girr311/fitpet-scraper:beat   . --push
 ```

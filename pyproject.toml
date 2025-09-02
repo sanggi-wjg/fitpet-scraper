@@ -24,6 +24,9 @@ xlsxwriter = "^3.2.5"
 pytz = "^2025.2"
 boto3 = "^1.40.21"
 sqlalchemy-utc = "^0.14.0"
+pymysql = "^1.1.2"
+mysqlclient = "^2.2.7"
+mysql-connector-python = "^9.4.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"

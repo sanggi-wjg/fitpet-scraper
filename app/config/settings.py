@@ -2,6 +2,7 @@ import json
 import os
 from functools import lru_cache
 from typing import Any
+from urllib.parse import quote_plus
 
 import boto3
 from botocore.exceptions import ClientError, BotoCoreError
@@ -11,8 +12,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class AWSSecretsManager:
 
-    def __init__(self, region_name: str = "ap-northeast-2"):
-        self.client = boto3.client("secretsmanager", region_name=region_name)
+    def __init__(self):
+        self.client = boto3.client("secretsmanager", region_name="ap-northeast-2")
 
     def get_secret(self) -> dict[str, Any]:
         try:
@@ -39,12 +40,25 @@ class Settings(BaseSettings):
         client_id: str
         client_secret: str
 
-    class SqliteDatabaseValue(BaseModel):
-        path: str
+    class MySQLDatabaseValue(BaseModel):
+        host: str
+        port: int
+        database: str
+        user: str
+        password: str
+
+        @property
+        def dsn(self):
+            encoded_password = quote_plus(self.password)
+            return f"mysql+pymysql://{self.user}:{encoded_password}@{self.host}:{self.port}/{self.database}"
+
+        @property
+        def celery_result_backend(self):
+            encoded_password = quote_plus(self.password)
+            return f"db+mysql://{self.user}:{encoded_password}@{self.host}:{self.port}/{self.database}"
 
     class CeleryValue(BaseModel):
         broker: str
-        backend: str
         once_backend: str
         once_default_timeout: int  # seconds
 
@@ -64,7 +78,7 @@ class Settings(BaseSettings):
             return os.path.join(self.base, "data")
 
     naver_shopping: NaverShoppingValue
-    sqlite_database: SqliteDatabaseValue
+    database: MySQLDatabaseValue
     celery: CeleryValue
     slack: SlackValue
     directory: DirectoryValue = DirectoryValue()

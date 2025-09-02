@@ -2,80 +2,27 @@
 name: fitpet-scraper
 
 services:
+  mysql:
+    image: mysql:8.0
+    container_name: fitpet-scraper-mysql
+    ports:
+      - "6399:3306"
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=true
+      - MYSQL_DATABASE=scrape
+      - MYSQL_USER=fitpet_scraper
+      - MYSQL_PASSWORD=pjiI8ww6PAo4owj1t4EQBw
+    volumes:
+      - ./data/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+      - ./data/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
   redis:
     image: redis:8-alpine
+    container_name: fitpet-scraper-redis
     ports:
       - "6400:6379"
     volumes:
       - redis_data:/data
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  web:
-    build: .
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
-    environment:
-      - NAVER_SHOPPING__CLIENT_ID=${NAVER_SHOPPING__CLIENT_ID}
-      - NAVER_SHOPPING__CLIENT_SECRET=${NAVER_SHOPPING__CLIENT_SECRET}
-      - SQLITE_DATABASE__PATH=sqlite:///data/fitpet_scraper.db
-      - CELERY__BROKER=redis://redis:6379/0
-      - CELERY__BACKEND=db+sqlite:///data/fitpet_scraper.db
-      - CELERY__ONCE_BACKEND=redis://redis:6379/1
-      - CELERY__ONCE_DEFAULT_TIMEOUT=300
-      - SLACK__BOT_TOKEN=${SLACK__BOT_TOKEN}
-      - SLACK__CHANNEL_FITPET_SCRAPER_ID=${SLACK__CHANNEL_FITPET_SCRAPER_ID}
-    depends_on:
-      redis:
-        condition: service_healthy
-    command: [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000" ]
-
-  celery-worker:
-    build: .
-    volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
-    environment:
-      - NAVER_SHOPPING__CLIENT_ID=${NAVER_SHOPPING__CLIENT_ID}
-      - NAVER_SHOPPING__CLIENT_SECRET=${NAVER_SHOPPING__CLIENT_SECRET}
-      - SQLITE_DATABASE__PATH=sqlite:///data/fitpet_scraper.db
-      - CELERY__BROKER=redis://redis:6379/0
-      - CELERY__BACKEND=db+sqlite:///data/fitpet_scraper.db
-      - CELERY__ONCE_BACKEND=redis://redis:6379/1
-      - CELERY__ONCE_DEFAULT_TIMEOUT=300
-      - SLACK__BOT_TOKEN=${SLACK__BOT_TOKEN}
-      - SLACK__CHANNEL_FITPET_SCRAPER_ID=${SLACK__CHANNEL_FITPET_SCRAPER_ID}
-    depends_on:
-      redis:
-        condition: service_healthy
-    command: [ "celery", "-A", "app.task.celery", "worker", "--loglevel=info" ]
-
-  celery-beat:
-    build: .
-    volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
-    environment:
-      - NAVER_SHOPPING__CLIENT_ID=${NAVER_SHOPPING__CLIENT_ID}
-      - NAVER_SHOPPING__CLIENT_SECRET=${NAVER_SHOPPING__CLIENT_SECRET}
-      - SQLITE_DATABASE__PATH=sqlite:///data/fitpet_scraper.db
-      - CELERY__BROKER=redis://redis:6379/0
-      - CELERY__BACKEND=db+sqlite:///data/fitpet_scraper.db
-      - CELERY__ONCE_BACKEND=redis://redis:6379/1
-      - CELERY__ONCE_DEFAULT_TIMEOUT=300
-      - SLACK__BOT_TOKEN=${SLACK__BOT_TOKEN}
-      - SLACK__CHANNEL_FITPET_SCRAPER_ID=${SLACK__CHANNEL_FITPET_SCRAPER_ID}
-    depends_on:
-      redis:
-        condition: service_healthy
-    command: [ "celery", "-A", "app.task.celery", "beat", "--loglevel=info" ]
-
 
 volumes:
   redis_data:
