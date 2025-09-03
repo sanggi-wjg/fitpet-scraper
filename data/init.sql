@@ -20,7 +20,7 @@ CREATE TABLE scraped_product
     name                 VARCHAR(256) NOT NULL,
     channel              VARCHAR(64)  NOT NULL,
     channel_product_id   VARCHAR(256) NOT NULL,
-    is_tracking_required BOOLEAN      NOT NULL,
+    is_tracking_required BOOLEAN      NOT NULL DEFAULT FALSE,
     keyword_id           INT          NOT NULL,
     created_at           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

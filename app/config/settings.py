@@ -5,6 +5,7 @@ from typing import Any
 from urllib.parse import quote_plus
 
 import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError, BotoCoreError
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -13,7 +14,15 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class AWSSecretsManager:
 
     def __init__(self):
-        self.client = boto3.client("secretsmanager", region_name="ap-northeast-2")
+        self.client = boto3.client(
+            "secretsmanager",
+            region_name="ap-northeast-2",
+            config=Config(
+                retries={"max_attempts": 3, "mode": "standard"},
+                read_timeout=10,
+                connect_timeout=10,
+            ),
+        )
 
     def get_secret(self) -> dict[str, Any]:
         try:
