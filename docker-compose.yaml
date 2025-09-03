@@ -11,7 +11,7 @@ services:
       - MYSQL_RANDOM_ROOT_PASSWORD=true
       - MYSQL_DATABASE=scrape
       - MYSQL_USER=fitpet_scraper
-      - MYSQL_PASSWORD=pjiI8ww6PAo4owj1t4EQBw
+      - MYSQL_PASSWORD=pjiI8ww6PAo
     volumes:
       - ./data/my.cnf:/etc/mysql/conf.d/my.cnf:ro
       - ./data/init.sql:/docker-entrypoint-initdb.d/init.sql:ro

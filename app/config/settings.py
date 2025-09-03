@@ -79,10 +79,6 @@ class Settings(BaseSettings):
         base: str = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
         @property
-        def log(self):
-            return os.path.join(self.base, "logs")
-
-        @property
         def data(self):
             return os.path.join(self.base, "data")
 
@@ -106,6 +102,6 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     settings = Settings()  # type: ignore[call-arg]
-    for path in [settings.directory.log, settings.directory.data]:
+    for path in [settings.directory.data]:
         os.makedirs(path, exist_ok=True)
     return settings
