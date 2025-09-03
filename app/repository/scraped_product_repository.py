@@ -2,7 +2,7 @@ from typing import List
 
 from sqlalchemy.orm import joinedload
 
-from app.entity import ScrapedProduct, Keyword, ScrapedProductDetail
+from app.entity import ScrapedProduct, Keyword
 from app.enum.channel_enum import ChannelEnum
 from app.repository.base_repository import BaseRepository
 from app.repository.model.search_conditions import ScrapedProductSearchCondition
@@ -54,23 +54,25 @@ class ScrapedProductRepository(BaseRepository[ScrapedProduct]):
                 joinedload(self.entity.keyword),
                 joinedload(self.entity.details),
             )
-            .join(Keyword)
-            .join(ScrapedProductDetail)
             .filter(
                 Keyword.is_deleted.is_(False),
             )
         )
         if search_condition.created_at_before:
-            query = query.filter(ScrapedProductDetail.created_at <= search_condition.created_at_before)
+            query = query.filter(self.entity.created_at <= search_condition.created_at_before)
         if search_condition.created_at_after:
-            query = query.filter(ScrapedProductDetail.created_at >= search_condition.created_at_after)
+            query = query.filter(self.entity.created_at >= search_condition.created_at_after)
         if search_condition.name:
             query = query.filter(self.entity.name.contains(search_condition.name))
         if search_condition.channel:
             query = query.filter(self.entity.channel == search_condition.channel)
 
-        return query.order_by(
-            Keyword.id.asc(),
-            self.entity.id.asc(),
-            ScrapedProductDetail.id.asc(),
-        ).all()
+        return (
+            query.order_by(
+                self.entity.keyword_id.asc(),
+                self.entity.id.asc(),
+                # ScrapedProductDetail.id.asc(),
+            )
+            .distinct()
+            .all()
+        )

@@ -2,7 +2,7 @@ import logging
 
 import httpx
 
-from app.api.model.api_response_model import NaverShoppingApiResponse
+from app.client.model.api_response_model import NaverShoppingApiResponse
 from app.config.settings import get_settings
 from app.util.decorators import run_catching, Result
 
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
-class NaverShoppingApi:
+class NaverShoppingClient:
     """
     https://developers.naver.com/docs/serviceapi/search/shopping/shopping.md#%EC%87%BC%ED%95%91
     """

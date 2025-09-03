@@ -8,8 +8,8 @@ from typing import Any
 import pandas as pd
 from celery_once import QueueOnce
 
-from app.api.naver_shopping_api import NaverShoppingApi
-from app.api.slack_client import SlackClient
+from app.client.naver_shopping_client import NaverShoppingClient
+from app.client.slack_client import SlackClient
 from app.config.settings import get_settings
 from app.enum.channel_enum import ChannelEnum
 from app.repository.model.search_conditions import ScrapedProductSearchCondition
@@ -25,17 +25,17 @@ settings = get_settings()
 
 @celery_app.task(base=QueueOnce, once={"graceful": True, "timeout": 60 * 5})
 def scrape_naver_shopping_task():
-    naver_shopping_api = NaverShoppingApi()
+    naver_shopping_client = NaverShoppingClient()
     keyword_service = KeywordService()
     scraped_product_service = ScrapedProductService()
 
     scrape_products_by_keywords(
-        naver_shopping_api,
+        naver_shopping_client,
         keyword_service,
         scraped_product_service,
     )
     scrape_tracking_required_products(
-        naver_shopping_api,
+        naver_shopping_client,
         scraped_product_service,
     )
     excel_filepath = create_excel_from_scraped_products(scraped_product_service)
@@ -46,15 +46,14 @@ def create_excel_from_scraped_products(scraped_product_service: ScrapedProductSe
     logger.info("[CREATE_EXCEL_FROM_SCRAPED_PRODUCTS] 🚀 엑셀 생성 시작 🚀")
 
     scraped_products = scraped_product_service.get_all_products_with_related(
-        ScrapedProductSearchCondition(
-            created_at_after=DatetimeUtil.subtract_hours_from(1),
-            channel=ChannelEnum.NAVER_SHOPPING,
-        )
+        ScrapedProductSearchCondition(channel=ChannelEnum.NAVER_SHOPPING)
     )
     dataset = defaultdict(list)
 
     for product in scraped_products:
-        dataset[product.keyword.word].extend(flatten_scraped_product_details(product))
+        flattened = flatten_scraped_product_details(product)
+        if flattened is not None:
+            dataset[product.keyword.word].extend(flattened)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     excel_filepath = os.path.join(settings.directory.data, f"scraped_products_{timestamp}.xlsx")
@@ -70,16 +69,21 @@ def create_excel_from_scraped_products(scraped_product_service: ScrapedProductSe
 
 def flatten_scraped_product_details(
     scraped_product: ScrapedProductWithRelatedModel,
-) -> list[dict[str, Any]]:
+) -> list[dict[str, Any]] | None:
+    hours_ago = DatetimeUtil.subtract_hours_from(1)
+    recent_details = [detail for detail in scraped_product.details if detail.created_at >= hours_ago]
+    if not recent_details:
+        return None
+
     result = []
-    for detail in scraped_product.details:
+    for detail in recent_details:
         scraped_result = json.loads(detail.scraped_result)
         result.append(
             {
                 "name": scraped_product.name,
                 "channel": scraped_product.channel.value,
                 "channel_product_id": scraped_product.channel_product_id,
-                "product_created_at": scraped_product.created_at,
+                "product_created_at": str(scraped_product.created_at),
                 "link": detail.link,
                 "image_link": detail.image_link,
                 "price": detail.price,
@@ -91,14 +95,14 @@ def flatten_scraped_product_details(
                 "category2": scraped_result.get("category2", ""),
                 "category3": scraped_result.get("category3", ""),
                 "category4": scraped_result.get("category4", ""),
-                "detail_created_at": detail.created_at,
+                "detail_created_at": str(detail.created_at),
             }
         )
     return result
 
 
 def scrape_products_by_keywords(
-    naver_shopping_api: NaverShoppingApi,
+    naver_shopping_client: NaverShoppingClient,
     keyword_service: KeywordService,
     scraped_product_service: ScrapedProductService,
 ):
@@ -109,7 +113,7 @@ def scrape_products_by_keywords(
         return
 
     for keyword in keywords:
-        searched_items = naver_shopping_api.search_with_all_pages(keyword.word)
+        searched_items = naver_shopping_client.search_with_all_pages(keyword.word)
         scraped_product_service.save_naver_shopping_search_result(
             searched_items,
             keyword.id,
@@ -121,7 +125,7 @@ def scrape_products_by_keywords(
 
 
 def scrape_tracking_required_products(
-    naver_shopping_api: NaverShoppingApi,
+    naver_shopping_client: NaverShoppingClient,
     scraped_product_service: ScrapedProductService,
 ):
     logger.info("[SCRAPE_TRACKING_REQUIRED_PRODUCTS] 🚀 추가 트래킹 필요한 상품정보 수집 시작 🚀")
@@ -130,7 +134,7 @@ def scrape_tracking_required_products(
         ChannelEnum.NAVER_SHOPPING
     )
     for product in scraped_products_tracking_required:
-        searched_items = naver_shopping_api.search_with_all_pages(product.name)
+        searched_items = naver_shopping_client.search_with_all_pages(product.name)
         scraped_product_service.save_naver_shopping_search_result(
             searched_items,
             product.keyword.id,

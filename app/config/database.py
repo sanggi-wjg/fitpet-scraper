@@ -16,9 +16,10 @@ settings = get_settings()
 _local = threading.local()
 
 engine = create_engine(
-    settings.sqlite_database.path,
+    settings.database.dsn,
+    pool_recycle=3600,
+    pool_pre_ping=True,
     echo=True,
-    connect_args={"check_same_thread": True},
 )
 SessionLocal = sessionmaker(
     bind=engine,

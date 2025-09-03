@@ -1,10 +1,8 @@
-from datetime import datetime
-
-from sqlalchemy import Column, Integer, String, Numeric, Text, ForeignKey, func, DateTime
+from sqlalchemy import Column, Integer, String, Numeric, Text, ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy_utc import UtcDateTime, utcnow
 
 from app.config.database import Base
-from app.util.util_datetime import DatetimeUtil
 
 
 class ScrapedProductDetail(Base):
@@ -19,7 +17,7 @@ class ScrapedProductDetail(Base):
     brand = Column(String(128))
     maker = Column(String(128))
     scraped_result = Column(Text)
-    created_at = Column(DateTime(timezone=True), default=func.now(), nullable=False)
+    created_at = Column(UtcDateTime(), default=utcnow(), nullable=False)
 
     # relationships
     scraped_product_id = Column(
@@ -29,7 +27,3 @@ class ScrapedProductDetail(Base):
 
     def __repr__(self):
         return f"<ScrapedProductDetail(mall_name='{self.mall_name}', price='{self.price}', link='{self.link}')>"
-
-    @property
-    def created_at_with_timezone(self) -> datetime:
-        return DatetimeUtil.to_utc(self.created_at)

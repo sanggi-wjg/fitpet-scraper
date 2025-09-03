@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from app.api.model.api_response_model import NaverShoppingApiResponse
+from app.client.model.api_response_model import NaverShoppingApiResponse
 from app.config.database import transactional
 from app.entity import ScrapedProduct, ScrapedProductDetail
 from app.enum.channel_enum import ChannelEnum
@@ -69,11 +69,10 @@ class ScrapedProductService:
             hours_ago = DatetimeUtil.subtract_hours_from(3)
 
             for detail in scraped_product.details:
-                if (
-                    detail.created_at_with_timezone >= hours_ago
-                    and detail.mall_name == item.mall_name
-                    and detail.link == item.link
-                ):
+                if detail.created_at is None:
+                    exists_detail = detail
+                    break
+                if detail.created_at >= hours_ago and detail.mall_name == item.mall_name and detail.link == item.link:
                     exists_detail = detail
                     break
             if exists_detail:
