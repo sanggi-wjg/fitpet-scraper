@@ -2,7 +2,7 @@ FROM python:3.12-slim AS base
 EXPOSE 8000
 ENV PYTHONUNBUFFERED=1
 
-RUN apt-get update && apt-get install -y curl \
+RUN apt-get update && apt-get install -y curl pkg-config python3-dev default-libmysqlclient-dev build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
