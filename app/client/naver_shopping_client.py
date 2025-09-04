@@ -28,7 +28,7 @@ class NaverShoppingClient:
 
     @run_catching
     def search(self, query: str, strat: int, display: int, sort: str) -> NaverShoppingApiResponse:
-        params = {"query": query, "start": strat, "display": display, "sort": sort}
+        params: dict[str, str | int] = {"query": query, "start": strat, "display": display, "sort": sort}
 
         with httpx.Client() as client:
             response = client.get(self.base_url, headers=self.headers, params=params)
@@ -44,7 +44,7 @@ class NaverShoppingClient:
         )
         if first_result.is_failure:
             logger.error(f"🔥 네이버 쇼핑 API 호출 실패, {first_result.exception}")
-            raise first_result.exception
+            first_result.raise_exception_or_none()
 
         first_response = first_result.get_or_raise()
         all_items.extend(first_response.items)

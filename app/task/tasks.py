@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Any
 
 import pandas as pd
-from celery_once import QueueOnce
+from celery_once import QueueOnce  # type: ignore[import-untyped]
 
 from app.client.naver_shopping_client import NaverShoppingClient
 from app.client.slack_client import SlackClient
@@ -77,7 +77,7 @@ def flatten_scraped_product_details(
 
     result = []
     for detail in recent_details:
-        scraped_result = json.loads(detail.scraped_result)
+        scraped_result = json.loads(detail.scraped_result) if detail.scraped_result else dict()
         result.append(
             {
                 "name": scraped_product.name,
@@ -151,6 +151,6 @@ def send_slack_notification(filepath: str):
     slack_client = SlackClient()
     upload_result = slack_client.upload_file(filepath, settings.slack.channel_fitpet_scraper_id)
     if upload_result.is_failure:
-        logger.warning(f"[SEND_SLACK_NOTIFICATION] ⚠️⚠️⚠️⚠️ 슬랙 전송 실패: {upload_result.exception_or_none()}")
+        logger.warning(f"[SEND_SLACK_NOTIFICATION] ⚠️⚠️⚠️⚠️ 슬랙 전송 실패: {upload_result.get_exception_or_none()}")
 
     logger.info("[SEND_SLACK_NOTIFICATION] 😎 슬랙 웹훅 종료 😎")
