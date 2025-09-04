@@ -14,7 +14,7 @@ class BaseRepository(Generic[T], ABC):
         self.entity = entity
 
     @property
-    def session(self):
+    def session(self) -> Session:
         session: Session = get_current_session()
         if not session:
             raise RuntimeError("Session is not set. Use @transactional decorator.")

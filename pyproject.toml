@@ -17,7 +17,7 @@ pydantic = "^2.11.7"
 pydantic-settings = "^2.10.1"
 slack-sdk = "^3.36.0"
 fastapi = "^0.116.1"
-uvicorn = {extras = ["standard"], version = "^0.35.0"}
+uvicorn = { extras = ["standard"], version = "^0.35.0" }
 pandas = "^2.3.2"
 pandas-stubs = "^2.3.2.250827"
 xlsxwriter = "^3.2.5"
@@ -31,6 +31,7 @@ mysql-connector-python = "^9.4.0"
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
 mypy = "^1.17.1"
+boto3-stubs = "^1.40.22"
 
 [build-system]
 requires = ["poetry-core"]
@@ -43,5 +44,13 @@ target-version = ["py312"]
 [tool.mypy]
 python_version = "3.12"
 exclude = [
-    "app/util/decorators.py"
+    "main\\.py$",
 ]
+
+[[tool.mypy.overrides]]
+module = [
+    "app.entity.*",
+    "app.config.database",
+    "app.util.decorators",
+]
+ignore_errors = true

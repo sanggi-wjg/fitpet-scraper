@@ -26,8 +26,14 @@ class Result(Generic[T]):
             return self.value
         raise self.exception
 
-    def exception_or_none(self) -> Exception | None:
-        return self.exception if self.is_failure else None
+    def get_exception_or_none(self) -> Exception | None:
+        if self.is_failure:
+            return self.exception
+        return None
+
+    def raise_exception_or_none(self) -> None:
+        if self.is_failure:
+            raise self.exception
 
     def on_success(self, action: Callable[[T], None]) -> Self:
         if self.is_success:
