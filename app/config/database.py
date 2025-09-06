@@ -34,14 +34,6 @@ def create_tables():
     Base.metadata.create_all(bind=engine)
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 def get_current_session() -> Session:
     return getattr(_local, "session", None)
 

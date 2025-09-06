@@ -54,6 +54,7 @@ class TestScrapedProductService(TestServiceContext):
             keyword_word=keyword.word,
             is_tracking_required=True,
         )
+        db_session.commit()
 
         # then
         result = db_session.query(ScrapedProduct).all()
