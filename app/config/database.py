@@ -65,7 +65,6 @@ def transactional(func: Callable):
         session = current_session or SessionLocal()
         if not current_session:
             _set_current_session(session)
-            session.begin()
 
         try:
             result = func(*args, **kwargs)
