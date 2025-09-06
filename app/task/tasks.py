@@ -17,7 +17,7 @@ from app.service.keyword_service import KeywordService
 from app.service.model.service_models import ScrapedProductWithRelatedModel
 from app.service.scraped_product_service import ScrapedProductService
 from app.task.celery import celery_app
-from app.util.util_datetime import DatetimeUtil
+from app.util.util_datetime import UtilDatetime
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -70,7 +70,7 @@ def create_excel_from_scraped_products(scraped_product_service: ScrapedProductSe
 def flatten_scraped_product_details(
     scraped_product: ScrapedProductWithRelatedModel,
 ) -> list[dict[str, Any]] | None:
-    hours_ago = DatetimeUtil.subtract_hours_from(1)
+    hours_ago = UtilDatetime.subtract_hours_from(1)
     recent_details = [detail for detail in scraped_product.details if detail.created_at >= hours_ago]
     if not recent_details:
         return None
