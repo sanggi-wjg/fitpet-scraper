@@ -19,7 +19,11 @@ class ScrapedProduct(Base):
     # relationships
     keyword_id = Column(Integer, ForeignKey("keyword.id", ondelete="RESTRICT"), nullable=True, index=True)
     keyword = relationship("Keyword", back_populates="scraped_products")
+
     details = relationship("ScrapedProductDetail", back_populates="scraped_product")
+
+    sitemap_source_id = Column(Integer, ForeignKey("sitemap_source.id", ondelete="RESTRICT"), nullable=True, index=True)
+    sitemap_source = relationship("SitemapSource", back_populates="scraped_products")
 
     def __repr__(self):
         return f"<Product(name='{self.name}', channel='{self.channel}', channel_product_id='{self.channel_product_id}')>"

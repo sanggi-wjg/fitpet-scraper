@@ -21,7 +21,7 @@ CREATE TABLE scraped_product
     channel              VARCHAR(64)  NOT NULL,
     channel_product_id   VARCHAR(256) NOT NULL,
     is_tracking_required BOOLEAN      NOT NULL DEFAULT FALSE,
-    keyword_id           INT          NOT NULL,
+    keyword_id           INT          NULL,
     created_at           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT frk_scraped_product_001 FOREIGN KEY (keyword_id) REFERENCES keyword (id) ON DELETE RESTRICT
@@ -65,3 +65,23 @@ VALUES ('잇츄'),
        ('포우장'),
        ('닥터설'),
        ('고래패드');
+
+ALTER TABLE scraped_product
+    MODIFY keyword_id INT NULL;
+
+CREATE TABLE sitemap_source
+(
+    id             INT           NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    channel        VARCHAR(64)   NOT NULL,
+    sitemap_url    VARCHAR(1024) NOT NULL,
+    file_path      VARCHAR(1024) NOT NULL,
+    created_at     DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_synced_at DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci;
+
+ALTER TABLE scraped_product
+    ADD COLUMN sitemap_source_id INT NULL,
+    ADD INDEX idx_scraped_product_004 (sitemap_source_id),
+    ADD CONSTRAINT frk_scraped_product_002 FOREIGN KEY (sitemap_source_id) REFERENCES sitemap_source (id) ON DELETE RESTRICT;
