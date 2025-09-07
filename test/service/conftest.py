@@ -7,7 +7,6 @@ from app.client.model.api_response_model import NaverShoppingApiResponse
 
 @pytest.fixture
 def naver_shopping_item_fixture() -> NaverShoppingApiResponse.Item:
-    """네이버 쇼핑 검색 결과 Item fixture"""
     return NaverShoppingApiResponse.Item(
         title="잇츄",
         link="https://shopping.naver.com/catalog/12345",
