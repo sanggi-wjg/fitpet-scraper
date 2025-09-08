@@ -9,14 +9,14 @@ from app.service.model.service_models import KeywordModel
 
 class KeywordService:
 
-    def __init__(self):
-        self.keyword_repository = KeywordRepository(Keyword)
+    def __init__(self, keyword_repository: KeywordRepository = KeywordRepository(Keyword)):
+        self.keyword_repository = keyword_repository
 
-    @transactional()
+    @transactional
     def get_available_keywords(self) -> list[KeywordModel]:
         return [KeywordModel.model_validate(item) for item in self.keyword_repository.find_all_available()]
 
-    @transactional()
+    @transactional
     def create_keyword(self, word: str):
         if self.keyword_repository.find_by_word(word):
             raise KeywordAlreadyExistsException(word)

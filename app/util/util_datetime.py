@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import pytz
 
 
-class DatetimeUtil:
+class UtilDatetime:
 
     @classmethod
     def utc_now(cls) -> datetime:

@@ -33,7 +33,6 @@ class BaseRepository(Generic[T], ABC):
 
     def save(self, entity: T) -> T:
         self.session.add(entity)
-        # self.session.flush()
         return entity
 
     def save_all(self, entities: list[T]) -> list[T]:
@@ -50,8 +49,9 @@ class BaseRepository(Generic[T], ABC):
     def delete(self, entity: T) -> None:
         self.session.delete(entity)
 
-    def delete_by_id(self, entity_id: int) -> bool:
+    def delete_by_id(self, entity_id: int):
         if found := self.find_by_id(entity_id):
             self.delete(found)
-            return True
-        return False
+
+    def delete_all(self) -> None:
+        self.session.query(self.entity).delete()

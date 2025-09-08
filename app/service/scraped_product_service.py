@@ -8,22 +8,29 @@ from app.repository.model.search_conditions import ScrapedProductSearchCondition
 from app.repository.scraped_product_detail_repository import ScrapedProductDetailRepository
 from app.repository.scraped_product_repository import ScrapedProductRepository
 from app.service.model.service_models import ScrapedProductModel, ScrapedProductWithRelatedModel
-from app.util.util_datetime import DatetimeUtil
+from app.util.util_datetime import UtilDatetime
 
 
 class ScrapedProductService:
-    def __init__(self):
-        self.scraped_product_repository = ScrapedProductRepository(ScrapedProduct)
-        self.scraped_product_detail_repository = ScrapedProductDetailRepository(ScrapedProductDetail)
 
-    @transactional()
+    def __init__(
+        self,
+        scraped_product_repository: ScrapedProductRepository = ScrapedProductRepository(ScrapedProduct),
+        scraped_product_detail_repository: ScrapedProductDetailRepository = ScrapedProductDetailRepository(
+            ScrapedProductDetail
+        ),
+    ):
+        self.scraped_product_repository = scraped_product_repository
+        self.scraped_product_detail_repository = scraped_product_detail_repository
+
+    @transactional
     def get_tracking_required_products(self, channel: ChannelEnum) -> list[ScrapedProductModel]:
         return [
             ScrapedProductModel.model_validate(item)
             for item in self.scraped_product_repository.find_all_by_channel_and_tracking_required(channel)
         ]
 
-    @transactional()
+    @transactional
     def get_all_products_with_related(
         self, search_condition: ScrapedProductSearchCondition
     ) -> list[ScrapedProductWithRelatedModel]:
@@ -32,7 +39,7 @@ class ScrapedProductService:
             for item in self.scraped_product_repository.find_all_with_related(search_condition)
         ]
 
-    @transactional()
+    @transactional
     def save_naver_shopping_search_result(
         self,
         searched_items: list[NaverShoppingApiResponse.Item],
@@ -66,7 +73,7 @@ class ScrapedProductService:
 
             # 3시간 이내 중복건은 제외처리
             exists_detail = None
-            hours_ago = DatetimeUtil.subtract_hours_from(3)
+            hours_ago = UtilDatetime.subtract_hours_from(3)
 
             for detail in scraped_product.details:
                 if detail.created_at is None:

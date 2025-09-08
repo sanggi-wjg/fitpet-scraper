@@ -34,7 +34,7 @@ class AWSSecretsManager:
         except (ClientError, BotoCoreError, json.JSONDecodeError) as e:
             raise RuntimeError(f"😢😢😢 AWS Secrets Manager 비밀 값을 가져오는데 실패했습니다: {e}")
         except Exception as e:
-            raise RuntimeError(f"🔥🔥🔥 알 수 없는 이유로 AWS Secrets Manager 비밀 값을 가져오는데 실패했습니다: {e}")
+            raise RuntimeError(f"🔥🔥🔥 AWS Secrets Manager 비밀 값을 가져오는데 실패했습니다: {e}")
 
 
 class Settings(BaseSettings):
@@ -82,6 +82,7 @@ class Settings(BaseSettings):
         def data(self):
             return os.path.join(self.base, "data")
 
+    debug: bool
     naver_shopping: NaverShoppingValue
     database: MySQLDatabaseValue
     celery: CeleryValue
@@ -89,7 +90,9 @@ class Settings(BaseSettings):
     directory: DirectoryValue = DirectoryValue()
 
     def __init__(self, **kwargs):
-        if os.getenv("ENVIRONMENT", "local") != "local":
+        environment = os.getenv("ENVIRONMENT", "local")
+
+        if environment != "local":
             aws_secrets_manager = AWSSecretsManager()
             secrets = aws_secrets_manager.get_secret()
 
