@@ -15,18 +15,17 @@ class ScrapedProduct(Base):
     channel_product_id = Column(String(256), nullable=False, index=True)
     created_at = Column(UtcDateTime(), default=utcnow(), nullable=False)
     is_tracking_required = Column(Boolean, nullable=False, default=False)
+    last_scraped_at = Column(UtcDateTime(), nullable=True)
 
     # relationships
     keyword_id = Column(Integer, ForeignKey("keyword.id", ondelete="RESTRICT"), nullable=True, index=True)
     keyword = relationship("Keyword", back_populates="scraped_products")
-
     details = relationship("ScrapedProductDetail", back_populates="scraped_product")
 
-    sitemap_source_id = Column(Integer, ForeignKey("sitemap_source.id", ondelete="RESTRICT"), nullable=True, index=True)
-    sitemap_source = relationship("SitemapSource", back_populates="scraped_products")
-
     def __repr__(self):
-        return f"<Product(name='{self.name}', channel='{self.channel}', channel_product_id='{self.channel_product_id}')>"
+        return (
+            f"<Product(name='{self.name}', channel='{self.channel}', channel_product_id='{self.channel_product_id}')>"
+        )
 
     def update_tracking_require(self):
         self.is_tracking_required = True

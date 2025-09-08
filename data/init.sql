@@ -55,6 +55,25 @@ CREATE TABLE scraped_product_detail
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci;
 
+
+CREATE TABLE sitemap_source
+(
+    id             INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    channel        VARCHAR(64)  NOT NULL,
+    sitemap_url    VARCHAR(256) NOT NULL,
+    filepath       VARCHAR(256) NULL,
+    created_at     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_pulled_at DATETIME     NULL,
+
+    CONSTRAINT uc_sitemap_source_001 UNIQUE (channel, sitemap_url)
+
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci;
+
+ALTER TABLE scraped_product
+    ADD COLUMN last_scraped_at DATETIME NULL;
+
 INSERT INTO keyword (word)
 VALUES ('잇츄'),
        ('플라고'),
@@ -66,22 +85,12 @@ VALUES ('잇츄'),
        ('닥터설'),
        ('고래패드');
 
-ALTER TABLE scraped_product
-    MODIFY keyword_id INT NULL;
+INSERT INTO sitemap_source (channel, sitemap_url)
+VALUES ('PET_FRIENDS', 'https://m.pet-friends.co.kr/sitemap-0.xml'),
+       ('PET_FRIENDS', 'https://m.pet-friends.co.kr/sitemap-1.xml'),
+       ('PET_FRIENDS', 'https://m.pet-friends.co.kr/sitemap-2.xml'),
+       ('PET_FRIENDS', 'https://m.pet-friends.co.kr/sitemap-3.xml'),
+       ('PET_FRIENDS', 'https://m.pet-friends.co.kr/sitemap-4.xml'),
+       ('PET_FRIENDS', 'https://m.pet-friends.co.kr/sitemap-5.xml');
+#        ('PET_FRIENDS', 'https://m.pet-friends.co.kr/server-sitemap.xml')
 
-CREATE TABLE sitemap_source
-(
-    id             INT           NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    channel        VARCHAR(64)   NOT NULL,
-    sitemap_url    VARCHAR(1024) NOT NULL,
-    file_path      VARCHAR(1024) NOT NULL,
-    created_at     DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_synced_at DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_0900_ai_ci;
-
-ALTER TABLE scraped_product
-    ADD COLUMN sitemap_source_id INT NULL,
-    ADD INDEX idx_scraped_product_004 (sitemap_source_id),
-    ADD CONSTRAINT frk_scraped_product_002 FOREIGN KEY (sitemap_source_id) REFERENCES sitemap_source (id) ON DELETE RESTRICT;

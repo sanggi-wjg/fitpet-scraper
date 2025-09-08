@@ -123,4 +123,5 @@ dmypy.json
 .lock
 
 *.xlsx
+*.xml
 logs/

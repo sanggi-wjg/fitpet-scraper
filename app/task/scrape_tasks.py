@@ -13,9 +13,9 @@ from app.client.slack_client import SlackClient
 from app.config.settings import get_settings
 from app.enum.channel_enum import ChannelEnum
 from app.repository.model.search_conditions import ScrapedProductSearchCondition
-from app.service.keyword_service import KeywordService
+from app.service.keyword_service import KeywordService, get_keyword_service
 from app.service.model.service_models import ScrapedProductWithRelatedModel
-from app.service.scraped_product_service import ScrapedProductService
+from app.service.scraped_product_service import ScrapedProductService, get_scraped_product_service
 from app.task.celery import celery_app
 from app.util.util_datetime import UtilDatetime
 
@@ -26,8 +26,8 @@ settings = get_settings()
 @celery_app.task(base=QueueOnce, once={"graceful": True, "timeout": 60 * 5})
 def scrape_naver_shopping_task():
     naver_shopping_client = NaverShoppingClient()
-    keyword_service = KeywordService()
-    scraped_product_service = ScrapedProductService()
+    keyword_service = get_keyword_service()
+    scraped_product_service = get_scraped_product_service()
 
     scrape_products_by_keywords(
         naver_shopping_client,

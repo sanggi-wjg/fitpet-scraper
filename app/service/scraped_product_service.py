@@ -71,20 +71,12 @@ class ScrapedProductService:
             if not is_tracking_required and scraped_product.is_tracking_required:
                 scraped_product.update_tracking_disable()
 
-            # 3시간 이내 중복건은 제외처리
-            exists_detail = None
+            # 3시간 이내에 스크래핑한 상품은 스킵
             hours_ago = UtilDatetime.subtract_hours_from(3)
-
-            for detail in scraped_product.details:
-                if detail.created_at is None:
-                    exists_detail = detail
-                    break
-                if detail.created_at >= hours_ago and detail.mall_name == item.mall_name and detail.link == item.link:
-                    exists_detail = detail
-                    break
-            if exists_detail:
+            if scraped_product.last_scraped_at is not None and scraped_product.last_scraped_at >= hours_ago:
                 continue
 
+            scraped_product.last_scraped_at = UtilDatetime.utc_now()
             scraped_product.details.append(
                 ScrapedProductDetail(
                     scraped_product_id=scraped_product.id,
