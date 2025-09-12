@@ -21,7 +21,7 @@ CREATE TABLE scraped_product
     channel              VARCHAR(64)  NOT NULL,
     channel_product_id   VARCHAR(256) NOT NULL,
     is_tracking_required BOOLEAN      NOT NULL DEFAULT FALSE,
-    keyword_id           INT          NOT NULL,
+    keyword_id           INT          NULL,
     created_at           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT frk_scraped_product_001 FOREIGN KEY (keyword_id) REFERENCES keyword (id) ON DELETE RESTRICT
@@ -55,6 +55,25 @@ CREATE TABLE scraped_product_detail
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci;
 
+
+CREATE TABLE sitemap_source
+(
+    id             INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    channel        VARCHAR(64)  NOT NULL,
+    sitemap_url    VARCHAR(256) NOT NULL,
+    filepath       VARCHAR(256) NULL,
+    created_at     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_pulled_at DATETIME     NULL,
+
+    CONSTRAINT uc_sitemap_source_001 UNIQUE (channel, sitemap_url)
+
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_0900_ai_ci;
+
+ALTER TABLE scraped_product
+    ADD COLUMN last_scraped_at DATETIME NULL;
+
 INSERT INTO keyword (word)
 VALUES ('잇츄'),
        ('플라고'),
@@ -65,3 +84,13 @@ VALUES ('잇츄'),
        ('포우장'),
        ('닥터설'),
        ('고래패드');
+
+INSERT INTO sitemap_source (channel, sitemap_url)
+VALUES ('PET_FRIENDS', 'https://m.pet-friends.co.kr/sitemap-0.xml'),
+       ('PET_FRIENDS', 'https://m.pet-friends.co.kr/sitemap-1.xml'),
+       ('PET_FRIENDS', 'https://m.pet-friends.co.kr/sitemap-2.xml'),
+       ('PET_FRIENDS', 'https://m.pet-friends.co.kr/sitemap-3.xml'),
+       ('PET_FRIENDS', 'https://m.pet-friends.co.kr/sitemap-4.xml'),
+       ('PET_FRIENDS', 'https://m.pet-friends.co.kr/sitemap-5.xml');
+#        ('PET_FRIENDS', 'https://m.pet-friends.co.kr/server-sitemap.xml')
+

@@ -26,7 +26,7 @@ celery_app.conf.ONCE = {
 
 celery_app.conf.beat_schedule = {
     "scrape_naver_shopping_task": {
-        "task": "app.task.tasks.scrape_naver_shopping_task",
+        "task": "app.task.scrape_tasks.scrape_naver_shopping_task",
         "schedule": crontab(minute="10", hour="16"),  # KST 1시 10분 (UTC 16시 10분)
         "args": (),
     },

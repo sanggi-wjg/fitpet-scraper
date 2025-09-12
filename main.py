@@ -11,7 +11,7 @@ from app.enum.channel_enum import ChannelEnum
 from app.exception.exception_handler import fitpet_scraper_exception_handler, global_exception_handler
 from app.exception.exceptions import UnsupportedChannelException, KeywordAlreadyExistsException, FitpetScraperException
 from app.service.keyword_service import KeywordService, get_keyword_service
-from app.task.tasks import scrape_naver_shopping_task
+from app.task.scrape_tasks import scrape_naver_shopping_task
 
 dictConfig(logging_config())
 

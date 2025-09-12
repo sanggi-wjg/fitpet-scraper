@@ -27,6 +27,8 @@ sqlalchemy-utc = "^0.14.0"
 pymysql = "^1.1.2"
 mysqlclient = "^2.2.7"
 mysql-connector-python = "^9.4.0"
+cryptography = "^45.0.7"
+fake-useragent = "^2.2.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"

@@ -1,5 +1,3 @@
-from typing import List
-
 from sqlalchemy.orm import joinedload
 
 from app.entity import ScrapedProduct, Keyword
@@ -33,7 +31,20 @@ class ScrapedProductRepository(BaseRepository[ScrapedProduct]):
             .first()
         )
 
-    def find_all_by_channel_and_tracking_required(self, channel: ChannelEnum) -> List[ScrapedProduct]:
+    def find_all_by_channel(self, channel: ChannelEnum) -> list[type[ScrapedProduct]]:
+        return (
+            self.session.query(self.entity)
+            .options(
+                joinedload(self.entity.details),
+            )
+            .filter(
+                self.entity.channel == channel,
+            )
+            .order_by(self.entity.id.asc())
+            .all()
+        )
+
+    def find_all_by_channel_and_tracking_required(self, channel: ChannelEnum) -> list[type[ScrapedProduct]]:
         return (
             self.session.query(self.entity)
             .options(
@@ -47,7 +58,7 @@ class ScrapedProductRepository(BaseRepository[ScrapedProduct]):
             .all()
         )
 
-    def find_all_with_related(self, search_condition: ScrapedProductSearchCondition) -> list[ScrapedProduct]:
+    def find_all_with_related(self, search_condition: ScrapedProductSearchCondition) -> list[type[ScrapedProduct]]:
         query = (
             self.session.query(self.entity)
             .options(
