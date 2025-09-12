@@ -125,3 +125,4 @@ dmypy.json
 *.xlsx
 *.xml
 logs/
+*temp.py
