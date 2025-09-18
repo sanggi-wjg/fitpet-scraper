@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="MainApp" type="PythonConfigurationType" factoryName="Python">
     <module name="fitpet-scraper" />
-    <option name="ENV_FILES" value=".env" />
+    <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>

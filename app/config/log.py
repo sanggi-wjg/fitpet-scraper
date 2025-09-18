@@ -1,5 +1,9 @@
 from functools import lru_cache
 
+from app.config.settings import get_settings
+
+settings = get_settings()
+
 
 @lru_cache
 def logging_config():
@@ -47,14 +51,15 @@ def logging_config():
             },
             "uvicorn": {
                 "handlers": ["default"],
-                "level": "INFO",
+                "level": "INFO" if settings.debug else "WARNING",
                 "propagate": False,
             },
             "uvicorn.access": {
                 "handlers": ["access"],
-                "level": "INFO",
+                "level": "INFO" if settings.debug else "WARNING",
                 "propagate": False,
             },
+            # 아니면 에러만 rotate 파일로 떨궈도?
             "uvicorn.error": {
                 "level": "INFO",
             },

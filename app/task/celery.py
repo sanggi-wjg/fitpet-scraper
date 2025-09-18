@@ -13,7 +13,12 @@ celery_app = Celery(
     broker=settings.celery.broker,
     # backend=settings.database.celery_result_backend, # todo 에러 발생하는데? 원인 확인 필요
 )
-celery_app.autodiscover_tasks(packages=["app.task"])
+celery_app.autodiscover_tasks(
+    packages=[
+        "app.task.scrape_tasks",
+        "app.task.sitemap_tasks",
+    ]
+)
 celery_app.conf.timezone = "UTC"
 
 celery_app.conf.ONCE = {

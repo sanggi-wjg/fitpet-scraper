@@ -18,7 +18,7 @@ engine = create_engine(
     settings.database.dsn,
     pool_recycle=3600,
     pool_pre_ping=True,
-    echo=True,  # todo only for development
+    echo=settings.debug,
 )
 SessionLocal = sessionmaker(
     bind=engine,

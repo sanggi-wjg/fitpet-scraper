@@ -1,9 +1,7 @@
-import json
 import logging
 import os.path
 from collections import defaultdict
 from datetime import datetime
-from typing import Any
 
 import pandas as pd
 from celery_once import QueueOnce  # type: ignore[import-untyped]
@@ -14,10 +12,8 @@ from app.config.settings import get_settings
 from app.enum.channel_enum import ChannelEnum
 from app.repository.model.search_conditions import ScrapedProductSearchCondition
 from app.service.keyword_service import KeywordService, get_keyword_service
-from app.service.model.service_models import ScrapedProductWithRelatedModel
 from app.service.scraped_product_service import ScrapedProductService, get_scraped_product_service
 from app.task.celery import celery_app
-from app.util.util_datetime import UtilDatetime
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -51,54 +47,20 @@ def create_excel_from_scraped_products(scraped_product_service: ScrapedProductSe
     dataset = defaultdict(list)
 
     for product in scraped_products:
-        flattened = flatten_scraped_product_details(product)
+        flattened = product.flatten_last_detail_for_naver_shopping()
         if flattened is not None:
-            dataset[product.keyword.word].extend(flattened)
+            dataset[product.keyword.word].append(flattened)
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     excel_filepath = os.path.join(settings.directory.data, f"scraped_products_{timestamp}.xlsx")
 
     with pd.ExcelWriter(excel_filepath, engine="xlsxwriter") as writer:
-        for keyword, rows in dataset.items():
-            df = pd.DataFrame(rows)
+        for keyword, data in dataset.items():
+            df = pd.DataFrame(data)
             df.to_excel(writer, sheet_name=keyword, index=False)
 
     logger.info("[CREATE_EXCEL_FROM_SCRAPED_PRODUCTS] 😎 엑셀 생성 종료 😎")
     return excel_filepath
-
-
-def flatten_scraped_product_details(
-    scraped_product: ScrapedProductWithRelatedModel,
-) -> list[dict[str, Any]] | None:
-    hours_ago = UtilDatetime.subtract_hours_from(1)
-    recent_details = [detail for detail in scraped_product.details if detail.created_at >= hours_ago]
-    if not recent_details:
-        return None
-
-    result = []
-    for detail in recent_details:
-        scraped_result = json.loads(detail.scraped_result) if detail.scraped_result else dict()
-        result.append(
-            {
-                "name": scraped_product.name,
-                "channel": scraped_product.channel.value,
-                "channel_product_id": scraped_product.channel_product_id,
-                "product_created_at": str(scraped_product.created_at),
-                "link": detail.link,
-                "image_link": detail.image_link,
-                "price": detail.price,
-                "mall_name": detail.mall_name,
-                "product_type": detail.product_type,
-                "brand": detail.brand,
-                "maker": detail.maker,
-                "category1": scraped_result.get("category1", ""),
-                "category2": scraped_result.get("category2", ""),
-                "category3": scraped_result.get("category3", ""),
-                "category4": scraped_result.get("category4", ""),
-                "detail_created_at": str(detail.created_at),
-            }
-        )
-    return result
 
 
 def scrape_products_by_keywords(
