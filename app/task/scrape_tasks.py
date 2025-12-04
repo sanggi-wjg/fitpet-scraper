@@ -25,6 +25,8 @@ def scrape_naver_shopping_task():
     keyword_service = get_keyword_service()
     scraped_product_service = get_scraped_product_service()
 
+    delete_naver_shopping_scraped_data(scraped_product_service)
+
     scrape_products_by_keywords(
         naver_shopping_client,
         keyword_service,
@@ -38,10 +40,18 @@ def scrape_naver_shopping_task():
     send_slack_notification(excel_filepath)
 
 
+def delete_naver_shopping_scraped_data(scraped_product_service: ScrapedProductService):
+    logger.info("[DELETE_NAVER_SHOPPING_SCRAPED_DATA] 🚀 이전 데이터 삭제 시작 🚀")
+
+    scraped_product_service.delete_all_scraped_products(ChannelEnum.NAVER_SHOPPING)
+
+    logger.info("[DELETE_NAVER_SHOPPING_SCRAPED_DATA] 😎 이전 데이터 삭제 완료 😎")
+
+
 def create_excel_from_scraped_products(scraped_product_service: ScrapedProductService) -> str:
     logger.info("[CREATE_EXCEL_FROM_SCRAPED_PRODUCTS] 🚀 엑셀 생성 시작 🚀")
 
-    scraped_products = scraped_product_service.get_all_products_with_related(
+    scraped_products = scraped_product_service.get_all_products_with_latest_detail(
         ScrapedProductSearchCondition(channel=ChannelEnum.NAVER_SHOPPING)
     )
     dataset = defaultdict(list)

@@ -15,12 +15,14 @@ class ScrapedProduct(Base):
     channel_product_id = Column(String(256), nullable=False, index=True)
     created_at = Column(UtcDateTime(), default=utcnow(), nullable=False)
     is_tracking_required = Column(Boolean, nullable=False, default=False)
-    last_scraped_at = Column(UtcDateTime(), nullable=True)
+    # last_scraped_at = Column(UtcDateTime(), nullable=True)
 
     # relationships
     keyword_id = Column(Integer, ForeignKey("keyword.id", ondelete="RESTRICT"), nullable=True, index=True)
     keyword = relationship("Keyword", back_populates="scraped_products")
-    details = relationship("ScrapedProductDetail", back_populates="scraped_product")
+    details = relationship(
+        "ScrapedProductDetail", back_populates="scraped_product", cascade="all, delete-orphan", lazy="selectin"
+    )
 
     def __repr__(self):
         return (

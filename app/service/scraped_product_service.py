@@ -8,7 +8,6 @@ from app.repository.model.search_conditions import ScrapedProductSearchCondition
 from app.repository.scraped_product_detail_repository import ScrapedProductDetailRepository
 from app.repository.scraped_product_repository import ScrapedProductRepository
 from app.service.model.service_models import ScrapedProductModel, ScrapedProductWithRelatedModel
-from app.util.util_datetime import UtilDatetime
 
 
 class ScrapedProductService:
@@ -40,6 +39,19 @@ class ScrapedProductService:
         ]
 
     @transactional
+    def get_all_products_with_latest_detail(
+        self, search_condition: ScrapedProductSearchCondition
+    ) -> list[ScrapedProductWithRelatedModel]:
+        return [
+            ScrapedProductWithRelatedModel.model_validate(item)
+            for item in self.scraped_product_repository.find_all_with_latest_detail(search_condition)
+        ]
+
+    @transactional
+    def delete_all_scraped_products(self, channel: ChannelEnum):
+        self.scraped_product_repository.delete_by_channel(channel)
+
+    @transactional
     def save_naver_shopping_search_result(
         self,
         searched_items: list[NaverShoppingApiResponse.Item],
@@ -51,32 +63,23 @@ class ScrapedProductService:
             if keyword_word not in item.title:
                 continue
 
-            scraped_product = self.scraped_product_repository.find_by_channel_and_product_id(
-                ChannelEnum.NAVER_SHOPPING, item.product_id
+            scraped_product = self.scraped_product_repository.save(
+                ScrapedProduct(
+                    keyword_id=keyword_id,
+                    name=item.title,
+                    channel=ChannelEnum.NAVER_SHOPPING,
+                    channel_product_id=item.product_id,
+                    is_tracking_required=False,
+                    # last_scraped_at=UtilDatetime.utc_now(),
+                )
             )
 
-            if not scraped_product:
-                scraped_product = self.scraped_product_repository.save(
-                    ScrapedProduct(
-                        keyword_id=keyword_id,
-                        name=item.title,
-                        channel=ChannelEnum.NAVER_SHOPPING,
-                        channel_product_id=item.product_id,
-                        is_tracking_required=False,
-                    )
-                )
             if is_tracking_required and item.is_mall_name_naver:
                 scraped_product.update_tracking_require()
 
             if not is_tracking_required and scraped_product.is_tracking_required:
                 scraped_product.update_tracking_disable()
 
-            # 3시간 이내에 스크래핑한 상품은 스킵
-            hours_ago = UtilDatetime.subtract_hours_from(3)
-            if scraped_product.last_scraped_at is not None and scraped_product.last_scraped_at >= hours_ago:
-                continue
-
-            scraped_product.last_scraped_at = UtilDatetime.utc_now()
             scraped_product.details.append(
                 ScrapedProductDetail(
                     scraped_product_id=scraped_product.id,

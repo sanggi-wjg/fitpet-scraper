@@ -28,7 +28,7 @@ def scrape_products_from_sitemap_sources():
 
 def create_pet_friends_excel_from_scraped_products():
     scraped_product_service = get_scraped_product_service()
-    scraped_products = scraped_product_service.get_all_products_with_related(
+    scraped_products = scraped_product_service.get_all_products_with_latest_detail(
         ScrapedProductSearchCondition(channel=ChannelEnum.PET_FRIENDS)
     )
 

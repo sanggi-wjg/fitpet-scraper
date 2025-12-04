@@ -49,7 +49,7 @@ CREATE TABLE scraped_product_detail
     scraped_product_id INTEGER        NOT NULL,
     created_at         DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT frk_scraped_product_detail_001 FOREIGN KEY (scraped_product_id) REFERENCES scraped_product (id) ON DELETE RESTRICT
+    CONSTRAINT frk_scraped_product_detail_001 FOREIGN KEY (scraped_product_id) REFERENCES scraped_product (id) ON DELETE CASCADE
 
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
