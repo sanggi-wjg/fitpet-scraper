@@ -71,9 +71,6 @@ CREATE TABLE sitemap_source
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_0900_ai_ci;
 
-ALTER TABLE scraped_product
-    ADD COLUMN last_scraped_at DATETIME NULL;
-
 INSERT INTO keyword (word)
 VALUES ('잇츄'),
        ('플라고'),
