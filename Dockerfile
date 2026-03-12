@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y curl pkg-config python3-dev default-lib
 WORKDIR /app
 
 RUN pip install poetry
-RUN poetry core virtualenvs.create false
+RUN poetry config virtualenvs.create false
 COPY pyproject.toml poetry.lock ./
 RUN poetry install --only=main --no-interaction --no-ansi --no-root
 
