@@ -38,7 +38,7 @@ scheduler = BackgroundScheduler(
     timezone="UTC",
 )
 
-scheduler.add_job(health_check_task, "interval", minutes=1)
+scheduler.add_job(health_check_task, "interval", minutes=5)
 scheduler.add_job(
     scrape_naver_shopping_task,
     CronTrigger(hour=9, minute=0, timezone="Asia/Seoul"),

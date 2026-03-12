@@ -10,7 +10,7 @@
 docker login
 
 # buildx 활성화 (한 번만 실행)
-docker buildx create --use --bootstrap --name multiarch
+docker buildx create --use --bootstrap --name multiarch1
 docker buildx ls
 
 docker buildx build --platform=linux/amd64,linux/arm64 --target web    -t girr311/fitpet-scraper:web    . --push
