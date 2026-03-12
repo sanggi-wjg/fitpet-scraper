@@ -1,7 +1,9 @@
-from contextlib import asynccontextmanager
-from logging.config import dictConfig
+from app.core.log import setup_logging
 
-import uvicorn
+setup_logging()
+
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, BackgroundTasks, Depends
 from sqlalchemy.orm import Session
 from starlette import status
@@ -10,14 +12,11 @@ from app.controller.config.exception_handler import register_exception_handlers
 from app.controller.dto.request_dto import CreateKeywordRequestDto
 from app.core.background_scheduler import scheduler
 from app.core.database import engine, get_db
-from app.core.log import logging_config
+
 from app.enum.channel_enum import ChannelEnum
-from app.exception.exception_handler import global_exception_handler
 from app.exception.exceptions import UnsupportedChannelException
 from app.service.keyword_service import KeywordService
 from app.task.scrape_tasks import scrape_naver_shopping_task
-
-dictConfig(logging_config())
 
 
 @asynccontextmanager
@@ -28,7 +27,7 @@ async def lifespan(_app: FastAPI):
     engine.dispose()
 
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 register_exception_handlers(app)
 
 
@@ -85,9 +84,11 @@ async def scrape_endpoint(
 
 
 if __name__ == "__main__":
+    import uvicorn
+
     uvicorn.run(
         "main:app",
-        port=8010,
+        port=8000,
         reload=False,
         access_log=True,
         use_colors=True,

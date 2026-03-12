@@ -1,5 +1,6 @@
 import multiprocessing
 
+from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 
@@ -23,6 +24,12 @@ class _BackgroundSchedulerExecutors:
 
 
 scheduler = BackgroundScheduler(
+    stores={
+        _BackgroundSchedulerStores.DEFAULT: "memory",
+    },
+    executors={
+        _BackgroundSchedulerExecutors.DEFAULT: ThreadPoolExecutor(10),
+    },
     job_defaults={
         "misfire_grace_time": 3600,  # 1시간까지 지나도 실행 허용
         "max_instances": 1,  # 동일 작업 중복 실행 방지
