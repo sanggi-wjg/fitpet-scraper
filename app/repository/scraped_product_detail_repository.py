@@ -1,6 +1,7 @@
-from app.entity import ScrapedProductDetail
-from app.repository.base_repository import BaseRepository
+from sqlalchemy.orm import Session
 
 
-class ScrapedProductDetailRepository(BaseRepository[ScrapedProductDetail]):
-    pass
+class ScrapedProductDetailRepository:
+
+    def __init__(self, session: Session):
+        self.session = session

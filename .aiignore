@@ -1,7 +1,0 @@
-.idea
-*.db
-*.log
-*.xlsx
-
-.gitignore
-logs/

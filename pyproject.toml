@@ -10,9 +10,6 @@ python = "^3.12"
 sqlalchemy = "^2.0.43"
 httpx = "^0.28.1"
 argparse = "^1.4.0"
-celery = { extras = ["redis"], version = "^5.5.3" }
-celery-once = "^3.0.1"
-celery-types = "^0.23.0"
 pydantic = "^2.11.7"
 pydantic-settings = "^2.10.1"
 slack-sdk = "^3.36.0"
@@ -29,14 +26,14 @@ mysqlclient = "^2.2.7"
 mysql-connector-python = "^9.4.0"
 cryptography = "^45.0.7"
 fake-useragent = "^2.2.0"
+tenacity = "^9.1.4"
+apscheduler = "^3.11.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
-mypy = "^1.17.1"
+pyright = "^1.1.408"
 boto3-stubs = "^1.40.22"
-pytest = "^8.4.2"
-pytest-cov = "^6.2.1"
-pytest-mock = "^3.15.0"
+pytest = "^9.0.2"
 pytest-freezegun = "^0.4.2"
 
 [build-system]
@@ -47,27 +44,15 @@ build-backend = "poetry.core.masonry.api"
 line-length = 120
 target-version = ["py312"]
 
-[tool.mypy]
-python_version = "3.12"
-exclude = [
-    "main\\.py$",
-]
-
-[[tool.mypy.overrides]]
-module = [
-    "app.entity.*",
-    "app.config.database",
-    "app.util.decorators",
-]
-ignore_errors = true
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "standard"
+#venvPath = "."
+#venv = ".venv"
 
 [tool.pytest.ini_options]
 testpaths = ["test"]
+pythonpath = ['.']
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = [
-    "--cov=app",
-    "--cov-report=term-missing",
-    "--cov-report=html"
-]

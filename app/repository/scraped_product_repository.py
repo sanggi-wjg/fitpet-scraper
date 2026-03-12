@@ -1,99 +1,88 @@
-from sqlalchemy import func
-from sqlalchemy.orm import joinedload, contains_eager
+from sqlalchemy import select, func
+from sqlalchemy.orm import joinedload, contains_eager, Session
 
 from app.entity import ScrapedProduct, ScrapedProductDetail, Keyword
 from app.enum.channel_enum import ChannelEnum
-from app.repository.base_repository import BaseRepository
 from app.repository.model.search_conditions import ScrapedProductSearchCondition
 
 
-class ScrapedProductRepository(BaseRepository[ScrapedProduct]):
+class ScrapedProductRepository:
+
+    def __init__(self, session: Session):
+        self.session = session
+
+    def save(self, scraped_product: ScrapedProduct) -> ScrapedProduct:
+        self.session.add(scraped_product)
+        self.session.flush()
+        return scraped_product
 
     def find_by_channel_and_name(self, channel: ChannelEnum, name: str) -> ScrapedProduct | None:
-        return (
-            self.session.query(self.entity)
-            .filter(
-                self.entity.channel == channel,
-                self.entity.name == name,
-            )
-            .first()
+        stmt = select(ScrapedProduct).where(
+            ScrapedProduct.channel == channel,
+            ScrapedProduct.name == name,
         )
+        return self.session.scalar(stmt)
 
     def find_by_channel_and_product_id(self, channel: ChannelEnum, product_id: str) -> ScrapedProduct | None:
-        return (
-            self.session.query(self.entity)
-            .options(
-                joinedload(self.entity.details),
+        stmt = (
+            select(ScrapedProduct)
+            .options(joinedload(ScrapedProduct.details))
+            .where(
+                ScrapedProduct.channel == channel,
+                ScrapedProduct.channel_product_id == product_id,
             )
-            .filter(
-                self.entity.channel == channel,
-                self.entity.channel_product_id == product_id,
-            )
-            .first()
         )
+        return self.session.scalar(stmt)
 
-    def find_all_by_channel(self, channel: ChannelEnum) -> list[type[ScrapedProduct]]:
-        return (
-            self.session.query(self.entity)
-            .options(
-                joinedload(self.entity.details),
-            )
-            .filter(
-                self.entity.channel == channel,
-            )
-            .order_by(self.entity.id.asc())
-            .all()
+    def find_all_by_channel(self, channel: ChannelEnum) -> list[ScrapedProduct]:
+        stmt = (
+            select(ScrapedProduct)
+            .options(joinedload(ScrapedProduct.details))
+            .where(ScrapedProduct.channel == channel)
+            .order_by(ScrapedProduct.id.asc())
         )
+        return list(self.session.scalars(stmt).unique())
 
-    def find_all_by_channel_and_tracking_required(self, channel: ChannelEnum) -> list[type[ScrapedProduct]]:
-        return (
-            self.session.query(self.entity)
-            .options(
-                joinedload(self.entity.keyword),
+    def find_all_by_channel_and_tracking_required(self, channel: ChannelEnum) -> list[ScrapedProduct]:
+        stmt = (
+            select(ScrapedProduct)
+            .options(joinedload(ScrapedProduct.keyword))
+            .where(
+                ScrapedProduct.channel == channel,
+                ScrapedProduct.is_tracking_required.is_(True),
             )
-            .filter(
-                self.entity.channel == channel,
-                self.entity.is_tracking_required,
-            )
-            .order_by(self.entity.id.asc())
-            .all()
+            .order_by(ScrapedProduct.id.asc())
         )
+        return list(self.session.scalars(stmt).unique())
 
-    def find_all_with_related(self, search_condition: ScrapedProductSearchCondition) -> list[type[ScrapedProduct]]:
-        query = (
-            self.session.query(self.entity)
+    def find_all_with_related(self, search_condition: ScrapedProductSearchCondition) -> list[ScrapedProduct]:
+        stmt = (
+            select(ScrapedProduct)
+            .join(ScrapedProduct.keyword)
             .options(
-                joinedload(self.entity.keyword),
-                joinedload(self.entity.details),
+                contains_eager(ScrapedProduct.keyword),
+                joinedload(ScrapedProduct.details),
             )
-            .filter(
-                Keyword.is_deleted.is_(False),
-            )
+            .where(Keyword.is_deleted.is_(False))
         )
         if search_condition.created_at_before:
-            query = query.filter(self.entity.created_at <= search_condition.created_at_before)
+            stmt = stmt.where(ScrapedProduct.created_at <= search_condition.created_at_before)
         if search_condition.created_at_after:
-            query = query.filter(self.entity.created_at >= search_condition.created_at_after)
+            stmt = stmt.where(ScrapedProduct.created_at >= search_condition.created_at_after)
         if search_condition.name:
-            query = query.filter(self.entity.name.contains(search_condition.name))
+            stmt = stmt.where(ScrapedProduct.name.contains(search_condition.name))
         if search_condition.channel:
-            query = query.filter(self.entity.channel == search_condition.channel)
+            stmt = stmt.where(ScrapedProduct.channel == search_condition.channel)
 
-        return (
-            query.order_by(
-                self.entity.keyword_id.asc(),
-                self.entity.id.asc(),
-                # ScrapedProductDetail.id.asc(),
-            )
-            .distinct()
-            .all()
-        )
+        stmt = stmt.order_by(
+            ScrapedProduct.keyword_id.asc(),
+            ScrapedProduct.id.asc(),
+        ).distinct()
+        return list(self.session.scalars(stmt).unique())
 
-    def find_all_with_latest_detail(
-        self, search_condition: ScrapedProductSearchCondition
-    ) -> list[type[ScrapedProduct]]:
+    def find_all_with_latest_detail(self, search_condition: ScrapedProductSearchCondition) -> list[ScrapedProduct]:
         latest_detail_subquery = (
-            self.session.query(
+            select(
                 ScrapedProductDetail.scraped_product_id,
                 func.max(ScrapedProductDetail.id).label("max_detail_id"),
             )
@@ -101,40 +90,45 @@ class ScrapedProductRepository(BaseRepository[ScrapedProduct]):
             .subquery()
         )
 
-        # ScrapedProduct를 조회하고, 최신 detail만 join
-        query = (
-            self.session.query(self.entity)
+        stmt = (
+            select(ScrapedProduct)
             .join(
                 ScrapedProductDetail,
-                self.entity.id == ScrapedProductDetail.scraped_product_id,
+                ScrapedProduct.id == ScrapedProductDetail.scraped_product_id,
             )
             .join(
                 latest_detail_subquery,
                 (ScrapedProductDetail.scraped_product_id == latest_detail_subquery.c.scraped_product_id)
                 & (ScrapedProductDetail.id == latest_detail_subquery.c.max_detail_id),
             )
+            .join(ScrapedProduct.keyword)
             .options(
-                joinedload(self.entity.keyword),
-                contains_eager(self.entity.details),  # 이미 join된 detail을 사용
+                contains_eager(ScrapedProduct.keyword),
+                contains_eager(ScrapedProduct.details),
             )
-            .filter(
-                Keyword.is_deleted.is_(False),
-            )
+            .where(Keyword.is_deleted.is_(False))
         )
 
         if search_condition.created_at_before:
-            query = query.filter(self.entity.created_at <= search_condition.created_at_before)
+            stmt = stmt.where(ScrapedProduct.created_at <= search_condition.created_at_before)
         if search_condition.created_at_after:
-            query = query.filter(self.entity.created_at >= search_condition.created_at_after)
+            stmt = stmt.where(ScrapedProduct.created_at >= search_condition.created_at_after)
         if search_condition.name:
-            query = query.filter(self.entity.name.contains(search_condition.name))
+            stmt = stmt.where(ScrapedProduct.name.contains(search_condition.name))
         if search_condition.channel:
-            query = query.filter(self.entity.channel == search_condition.channel)
+            stmt = stmt.where(ScrapedProduct.channel == search_condition.channel)
 
-        return query.order_by(
-            self.entity.keyword_id.asc(),
-            self.entity.id.asc(),
-        ).all()
+        return list(
+            self.session.scalars(
+                stmt.order_by(
+                    ScrapedProduct.keyword_id.asc(),
+                    ScrapedProduct.id.asc(),
+                )
+            ).unique()
+        )
 
     def delete_by_channel(self, channel: ChannelEnum):
-        self.session.query(self.entity).filter(self.entity.channel == channel).delete()
+        stmt = select(ScrapedProduct).where(ScrapedProduct.channel == channel)
+        products = list(self.session.scalars(stmt))
+        for product in products:
+            self.session.delete(product)

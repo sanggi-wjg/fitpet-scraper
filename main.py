@@ -1,59 +1,84 @@
+from contextlib import asynccontextmanager
 from logging.config import dictConfig
-from typing import Annotated
 
 import uvicorn
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI, BackgroundTasks, Depends
+from sqlalchemy.orm import Session
 from starlette import status
 
-from app.config.log import logging_config
-from app.dto.request_dto import CreateKeywordRequestDto
+from app.controller.config.exception_handler import register_exception_handlers
+from app.controller.dto.request_dto import CreateKeywordRequestDto
+from app.core.background_scheduler import scheduler
+from app.core.database import engine, get_db
+from app.core.log import logging_config
 from app.enum.channel_enum import ChannelEnum
-from app.exception.exception_handler import fitpet_scraper_exception_handler, global_exception_handler
-from app.exception.exceptions import UnsupportedChannelException, KeywordAlreadyExistsException, FitpetScraperException
-from app.service.keyword_service import KeywordService, get_keyword_service
+from app.exception.exception_handler import global_exception_handler
+from app.exception.exceptions import UnsupportedChannelException
+from app.service.keyword_service import KeywordService
 from app.task.scrape_tasks import scrape_naver_shopping_task
 
 dictConfig(logging_config())
 
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    scheduler.start()
+    yield
+    scheduler.shutdown(wait=True)
+    engine.dispose()
+
+
 app = FastAPI()
-app.add_exception_handler(Exception, global_exception_handler)
-app.add_exception_handler(FitpetScraperException, fitpet_scraper_exception_handler)
-app.add_exception_handler(KeywordAlreadyExistsException, fitpet_scraper_exception_handler)
-app.add_exception_handler(UnsupportedChannelException, fitpet_scraper_exception_handler)
-
-GetKeyWordService = Annotated[KeywordService, Depends(get_keyword_service)]
+register_exception_handlers(app)
 
 
-@app.get("/", status_code=status.HTTP_200_OK, tags=["root"])
+@app.get("/", status_code=status.HTTP_200_OK, tags=["Root"])
 async def root():
     return {"message": "Hello World"}
 
 
-@app.get("/health", status_code=status.HTTP_200_OK, tags=["health"])
+@app.get("/health", status_code=status.HTTP_200_OK, tags=["Health"])
 async def health_check():
     return {"status": "healthy"}
 
 
-@app.get("/api/v1/keywords", status_code=status.HTTP_200_OK, tags=["keywords"])
-async def get_keywords(keyword: GetKeyWordService):
-    return keyword.get_available_keywords()
+@app.get(
+    "/api/v1/keywords",
+    status_code=status.HTTP_200_OK,
+    tags=["Keyword"],
+)
+async def get_keywords(
+    db: Session = Depends(get_db),
+):
+    service = KeywordService(db)
+    return service.get_keywords()
 
 
-@app.post("/api/v1/keywords", status_code=status.HTTP_201_CREATED, tags=["keywords"])
+@app.post(
+    "/api/v1/keywords",
+    status_code=status.HTTP_201_CREATED,
+    tags=["Keyword"],
+)
 async def create_keyword_endpoint(
     request_dto: CreateKeywordRequestDto,
-    keyword_service: GetKeyWordService,
+    db: Session = Depends(get_db),
 ):
-    keyword_service.create_keyword(request_dto.word)
+    service = KeywordService(db)
+    service.create_keyword(request_dto.word)
     return {"message": f"{request_dto.word} created successfully"}
 
 
-@app.post("/api/v1/scrape/{channel}", status_code=status.HTTP_202_ACCEPTED, tags=["scrape"])
+@app.post(
+    "/api/v1/scrape/{channel}",
+    status_code=status.HTTP_202_ACCEPTED,
+    tags=["Scrape"],
+)
 async def scrape_endpoint(
     channel: ChannelEnum,
+    background_tasks: BackgroundTasks,
 ):
     if channel == ChannelEnum.NAVER_SHOPPING:
-        scrape_naver_shopping_task.delay()
+        background_tasks.add_task(scrape_naver_shopping_task)
     else:
         raise UnsupportedChannelException(channel)
     return {"message": "Scraping started in background"}
@@ -62,8 +87,8 @@ async def scrape_endpoint(
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
-        port=8000,
+        port=8010,
         reload=False,
-        reload_delay=3,
+        access_log=True,
         use_colors=True,
     )
