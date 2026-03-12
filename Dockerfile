@@ -16,9 +16,9 @@ COPY . .
 
 FROM base AS web
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-
-FROM base AS worker
-CMD ["celery", "-A", "app.task.celery", "worker", "--loglevel=info"]
-
-FROM base AS beat
-CMD ["celery", "-A", "app.task.celery", "beat", "--loglevel=info"]
+#
+#FROM base AS worker
+#CMD ["celery", "-A", "app.task.celery", "worker", "--loglevel=info"]
+#
+#FROM base AS beat
+#CMD ["celery", "-A", "app.task.celery", "beat", "--loglevel=info"]

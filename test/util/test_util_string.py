@@ -9,7 +9,7 @@ class TestUtilString:
         "given_text,expected",
         [
             pytest.param("<a href='https://dev.com'>dev.com</a>", "dev.com"),
-            pytest.param('<div class="iam-class"\>what</a>', "what"),
+            pytest.param('<div class="iam-class">what</a>', "what"),
             pytest.param("", ""),
         ],
     )

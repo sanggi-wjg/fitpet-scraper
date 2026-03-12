@@ -1,16 +1,15 @@
 import logging
 import os
-from functools import lru_cache
 from urllib.request import urlretrieve
 
-from app.client.pet_friends_client import PetFriendsClient
-from app.config.database import transactional
-from app.config.settings import get_settings
-from app.entity import SitemapSource, ScrapedProduct, ScrapedProductDetail
+from sqlalchemy.orm import Session
+
+from app.client.pet_friends_client import get_pet_friends_client
+from app.core.settings import get_settings
+from app.entity import ScrapedProduct, ScrapedProductDetail, SitemapSource
 from app.enum.channel_enum import ChannelEnum
 from app.repository.scraped_product_repository import ScrapedProductRepository
 from app.repository.sitemap_source_repository import SitemapSourceRepository
-from app.service.model.service_models import SitemapSourceModel
 from app.util.util_datetime import UtilDatetime
 from app.util.util_string import extract_product_id_from_pet_friends_product_detail_url
 from app.util.util_xml import extract_product_detail_urls_from_xml
@@ -21,21 +20,13 @@ logger = logging.getLogger(__name__)
 
 class SitemapSourceService:
 
-    def __init__(
-        self,
-        sitemap_source_repository: SitemapSourceRepository = SitemapSourceRepository(SitemapSource),
-        scraped_product_repository: ScrapedProductRepository = ScrapedProductRepository(ScrapedProduct),
-        pet_friends_client: PetFriendsClient = PetFriendsClient(),
-    ):
-        self.sitemap_source_repository = sitemap_source_repository
-        self.scraped_product_repository = scraped_product_repository
-        self.pet_friend_client = pet_friends_client
+    def __init__(self, session: Session):
+        self.sitemap_source_repository = SitemapSourceRepository(session)
+        self.scraped_product_repository = ScrapedProductRepository(session)
 
-    @transactional
-    def get_all(self) -> list[SitemapSourceModel]:
-        return [SitemapSourceModel.model_validate(item) for item in self.sitemap_source_repository.find_all()]
+    def get_all(self) -> list[SitemapSource]:
+        return self.sitemap_source_repository.find_all()
 
-    @transactional
     def pull_sitemap_sources(self) -> None:
         sitemap_sources = self.sitemap_source_repository.find_all()
 
@@ -43,9 +34,7 @@ class SitemapSourceService:
             filepath = os.path.join(settings.directory.data, source.get_escaped_sitemap_url())
             urlretrieve(source.sitemap_url, filepath)
             source.pulled(filepath)
-        self.sitemap_source_repository.save_all(sitemap_sources)
 
-    @transactional
     def scrape_products_from_sitemap_sources(self) -> None:
         sitemap_sources = [
             sitemap_source
@@ -56,6 +45,9 @@ class SitemapSourceService:
         product_detail_urls = set()
 
         for source in sitemap_sources:
+            if source.filepath is None:
+                continue
+
             urls = extract_product_detail_urls_from_xml(source.filepath)
             product_detail_urls.update(urls)
 
@@ -63,6 +55,8 @@ class SitemapSourceService:
         scraped_product_by_id = dict(
             {scraped_product.channel_product_id: scraped_product for scraped_product in scraped_products}
         )
+
+        pet_friend_client = get_pet_friends_client()
 
         for detail_url in product_detail_urls:
             product_id = extract_product_id_from_pet_friends_product_detail_url(detail_url)
@@ -78,14 +72,7 @@ class SitemapSourceService:
                 continue
 
             # 한번 호출하고 나서
-            result = self.pet_friend_client.get_product_detail(product_id)
-            if result.is_failure:
-                logger.warning(
-                    f"펫프렌즈 상품 정보를 가져오는데 실패했습니다. 확인 필요합니다: {result.get_exception_or_none()}"
-                )
-                continue
-
-            response = result.get_or_raise()
+            response = pet_friend_client.get_product_detail(product_id)
             product_detail = response.data.product_detail.value
 
             if scraped_product is None:
@@ -111,8 +98,3 @@ class SitemapSourceService:
                     scraped_result=product_detail.model_dump_json(),
                 )
             )
-
-
-@lru_cache()
-def get_sitemap_source_service() -> SitemapSourceService:
-    return SitemapSourceService()

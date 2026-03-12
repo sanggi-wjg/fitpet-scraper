@@ -1,7 +1,7 @@
 import json
 import os
 from functools import lru_cache
-from typing import Any
+from typing import Any, Literal
 from urllib.parse import quote_plus
 
 import boto3
@@ -55,21 +55,17 @@ class Settings(BaseSettings):
         database: str
         user: str
         password: str
+        pool_size: int = 5
+        max_overflow: int = 10
+        pool_timeout: int = 60
+        pool_recycle: int = 1800
+        pool_pre_ping: bool = True
+        isolation_level: Literal["REPEATABLE READ"] | str = "REPEATABLE READ"
 
         @property
         def dsn(self):
             encoded_password = quote_plus(self.password)
             return f"mysql+pymysql://{self.user}:{encoded_password}@{self.host}:{self.port}/{self.database}"
-
-        @property
-        def celery_result_backend(self):
-            encoded_password = quote_plus(self.password)
-            return f"db+mysql://{self.user}:{encoded_password}@{self.host}:{self.port}/{self.database}"
-
-    class CeleryValue(BaseModel):
-        broker: str
-        once_backend: str
-        once_default_timeout: int  # seconds
 
     class SlackValue(BaseModel):
         bot_token: str
@@ -85,7 +81,6 @@ class Settings(BaseSettings):
     debug: bool
     naver_shopping: NaverShoppingValue
     database: MySQLDatabaseValue
-    celery: CeleryValue
     slack: SlackValue
     directory: DirectoryValue = DirectoryValue()
 

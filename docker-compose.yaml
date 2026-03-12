@@ -15,14 +15,3 @@ services:
     volumes:
       - ./data/my.cnf:/etc/mysql/conf.d/my.cnf:ro
       - ./data/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-
-  redis:
-    image: redis:8-alpine
-    container_name: fitpet-scraper-redis
-    ports:
-      - "6400:6379"
-    volumes:
-      - redis_data:/data
-
-volumes:
-  redis_data:

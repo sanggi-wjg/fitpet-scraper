@@ -1,57 +1,33 @@
-from functools import lru_cache
+from sqlalchemy.orm import Session
 
 from app.client.model.api_response_model import NaverShoppingApiResponse
-from app.config.database import transactional
 from app.entity import ScrapedProduct, ScrapedProductDetail
 from app.enum.channel_enum import ChannelEnum
 from app.repository.model.search_conditions import ScrapedProductSearchCondition
 from app.repository.scraped_product_detail_repository import ScrapedProductDetailRepository
 from app.repository.scraped_product_repository import ScrapedProductRepository
-from app.service.model.service_models import ScrapedProductModel, ScrapedProductWithRelatedModel
 
 
 class ScrapedProductService:
 
-    def __init__(
-        self,
-        scraped_product_repository: ScrapedProductRepository = ScrapedProductRepository(ScrapedProduct),
-        scraped_product_detail_repository: ScrapedProductDetailRepository = ScrapedProductDetailRepository(
-            ScrapedProductDetail
-        ),
-    ):
-        self.scraped_product_repository = scraped_product_repository
-        self.scraped_product_detail_repository = scraped_product_detail_repository
+    def __init__(self, session: Session):
+        self.scraped_product_repository = ScrapedProductRepository(session)
+        self.scraped_product_detail_repository = ScrapedProductDetailRepository(session)
 
-    @transactional
-    def get_tracking_required_products(self, channel: ChannelEnum) -> list[ScrapedProductModel]:
-        return [
-            ScrapedProductModel.model_validate(item)
-            for item in self.scraped_product_repository.find_all_by_channel_and_tracking_required(channel)
-        ]
+    def get_tracking_required_products(self, channel: ChannelEnum) -> list[ScrapedProduct]:
+        return self.scraped_product_repository.find_all_by_channel_and_tracking_required(channel)
 
-    @transactional
-    def get_all_products_with_related(
-        self, search_condition: ScrapedProductSearchCondition
-    ) -> list[ScrapedProductWithRelatedModel]:
-        return [
-            ScrapedProductWithRelatedModel.model_validate(item)
-            for item in self.scraped_product_repository.find_all_with_related(search_condition)
-        ]
+    def get_all_products_with_related(self, search_condition: ScrapedProductSearchCondition) -> list[ScrapedProduct]:
+        return self.scraped_product_repository.find_all_with_related(search_condition)
 
-    @transactional
     def get_all_products_with_latest_detail(
         self, search_condition: ScrapedProductSearchCondition
-    ) -> list[ScrapedProductWithRelatedModel]:
-        return [
-            ScrapedProductWithRelatedModel.model_validate(item)
-            for item in self.scraped_product_repository.find_all_with_latest_detail(search_condition)
-        ]
+    ) -> list[ScrapedProduct]:
+        return self.scraped_product_repository.find_all_with_latest_detail(search_condition)
 
-    @transactional
-    def delete_all_scraped_products(self, channel: ChannelEnum):
+    def delete_by_channel(self, channel: ChannelEnum):
         self.scraped_product_repository.delete_by_channel(channel)
 
-    @transactional
     def save_naver_shopping_search_result(
         self,
         searched_items: list[NaverShoppingApiResponse.Item],
@@ -93,8 +69,3 @@ class ScrapedProductService:
                     scraped_result=item.model_dump_json(),
                 )
             )
-
-
-@lru_cache
-def get_scraped_product_service() -> ScrapedProductService:
-    return ScrapedProductService()
